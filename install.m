@@ -1,3 +1,4 @@
+cd functions
 newpath = pwd;
 disp(['Adding to path: >>', newpath, '<<']);
 addpath(newpath);
@@ -17,3 +18,4 @@ else
     disp('*              ERROR: Failed to update path.                  *'); 
     disp('***************************************************************');
 end
+cd ..
