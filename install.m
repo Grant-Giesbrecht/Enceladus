@@ -2,6 +2,12 @@ cd functions
 newpath = pwd;
 disp(['Adding to path: >>', newpath, '<<']);
 addpath(newpath);
+
+cd ../electronics
+newpath = pwd;
+disp(['Adding to path: >>', newpath, '<<']);
+addpath(newpath);
+
 if (savepath == 0)
     disp(' ')
     disp('***************************************************************');
