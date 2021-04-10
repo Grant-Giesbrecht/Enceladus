@@ -3,62 +3,53 @@ function formatImports(varargin)
 	kvf = NaN;
 	kvf_name = "";
 	hasKv = false;
-
+	deletes = [];
+	svv = []
+	
+	isSplitVecVar = false
+	
+	%For each input arugment
 	for id = 1:nargin
 		x = varargin{id};
 		name = inputname(id);
-		mods = "";
-		unitsX = "";
-		
-		%Check if input is KvFile object
-		if class(x) == 'KvFile'
-			kvf = x;
-			kvf_name = name;
-			hasKv = true;
+	
+		%If found keyword
+		if x == "splitVec"
+			
+			%MArk to delete keyword
+			if isempty(deletes)
+				deletes = id;
+			else
+				deletes(end+1) = id;
+			end
 			continue;
 		end
 		
-		dim = size(x);
-		
-		%Ensure correct dimensions
-		if dim(1) > dim(2)
-			x=x.';
-			dim = size(x);
-			if mods == ""
-				mods = strcat("Transposed matrix (new dim: ", string(dim(1)), "x", string(dim(2)) ,")");
+		%If found variable for splitting stuff
+		if splitVecVar
+			svv = x;
+			splitVecVar = false;
+			
+			%Mark to delete keyword
+			if isempty(deletes)
+				deletes = id;
 			else
-				mods = strcat(mods, ", transposed matrix (New dim: ", string(dim(1)), "x", string(dim(2)) ,")");
+				deletes(end+1) = id;
 			end
-		end
-		
-		%Convert unit string to numbers
-		if class(x) == "string"
-			[xf, unitsX] = unum2float(x);
-			if isnan(xf)
-				disp("****************************************");
-				disp("Failed to convert string list to floats.");
-				disp("****************************************");
-			else
-				x = xf;
-			end
-			if mods == ""
-				mods = strcat("Converted unit-strings to float (Unit: ", unitsX ,")");
-			else
-				mods = strcat(mods, ", converted unit-strings to float (Unit: ", unitsX ,")");
-			end
-		end
-		
-		%Update variables in workspace if modified
-		if mods ~= ""
-			disp(strcat( "Formatted variable '", name ,"': ", mods ))
-			assignin('base', name, x);
-		end
-		
-		%If KvFile provided, add variable to object
-		if hasKv
-			kvf.add(x, name, unitsX);
 		end
 		
 	end
+	
+	%Delete cells
+	for i=length(deletes):-1:1
+		varargin{i} = [];
+	end
+	
+	%Run breakWith if requried
+	if ~isempty(svv)
+		breakWith(svv, varargin)
+	end
+	
+	
 	
 end
