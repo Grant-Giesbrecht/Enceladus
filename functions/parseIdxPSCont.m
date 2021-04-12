@@ -9,6 +9,12 @@ function words=parseIdxPSCont(input, delims, addToList, startIdx)
 	original = input;
 	input=char(input);
 	delims=char(delims);
+	
+	%Trim deliminators from beginnning
+	while contains(delims, input(1))
+		input = input(2:end);
+		startIdx = startIdx + 1;
+	end
 
 	escapes = find(input=='\');
 	quotes = find(input=='"');
@@ -44,62 +50,107 @@ function words=parseIdxPSCont(input, delims, addToList, startIdx)
 
 	quit = 0;
 	
-	%Find first hit for each delim
 	hits = [];
+	all_true_delim_idxs = [];
 	for c=delims
 		
+		%Find all hits for that delim
+		all_idxs = find(input == c);
 		
-		%Find delim hits until one is not in a string (as identified in
-		%'pairs').
-		idx_offset = 0;
-		input_scan = input;
-		while true
+		%Add to 'all_true_delim_idxs' if not in detected string
+		for ai=all_idxs
 			
-			remain = false;
+			in_string = false;
 			
-			%Find one match, first match
-			idx=find(input_scan==c, 1, 'first');
-			
-			%Break if no match found
-			if isempty(idx)
-				break;
-			end
-			
-			idx = idx + idx_offset;
-			
-			%Scan through strings, check delim isn't in string
+			%Check if in any string pair
 			for p=pairs
-				
 				%True if is in string
-				if idx > p.a && idx < p.b
-					idx_offset = idx; %Update offset variable
-					input_scan = input_scan(idx+1:end); %Trim this first delim
-					remain = true; %Indicate that you must remain in loop
+				if ai > p.a && ai < p.b
+					in_string = true;
+					break
 				end
 			end
 			
-			%Exit when delim found outside of string
-			if ~remain
-				break;
+			%Add if not in any string
+			if ~in_string
+				if isempty(all_true_delim_idxs)
+					all_true_delim_idxs = ai;
+				else
+					all_true_delim_idxs(end+1) = ai;
+				end
 			end
-			
 		end
 		
-		
-		
-		%If no matches, will be 1x0 array - change to value NaN to say 'no
-		%position'.
-		if isempty(idx)
-			idx = NaN;
+		val = NaN;
+		if ~isempty(all_true_delim_idxs)
+			val = min(all_true_delim_idxs);
 		end
 		
-		%Add to list of hits
 		if isempty(hits)
-			hits = idx;
+			hits = val;
 		else
-			hits(end+1) = idx;
-		end		
+			hits(end+1) = val;
+		end
+		
 	end
+	
+	%Find first hit for each delim
+% 	hits = [];
+% 	for c=delims
+% 		
+% 		
+% 		%Find delim hits until one is not in a string (as identified in
+% 		%'pairs').
+% 		idx_offset = 0;
+% 		input_scan = input;
+% 		while true
+% 			
+% 			remain = false;
+% 			
+% 			%Find one match, first match
+% 			idx=find(input_scan==c, 1, 'first');
+% 			
+% 			%Break if no match found, try next delim
+% 			if isempty(idx)
+% 				break;
+% 			end
+% 			
+% 			idx = idx + idx_offset;
+% 			
+% 			%Scan through strings, check delim isn't in string
+% 			for p=pairs
+% 				
+% 				%True if is in string
+% 				if idx > p.a && idx < p.b
+% 					idx_offset = idx; %Update offset variable
+% 					input_scan = input_scan(idx-1:end); %Trim this first delim
+% 					remain = true; %Indicate that you must remain in loop
+% 					break
+% 				end
+% 			end
+% 			
+% 			%Exit when delim found outside of string
+% 			if ~remain
+% 				break;
+% 			end
+% 			
+% 		end
+% 		
+% 		
+% 		
+% 		%If no matches, will be 1x0 array - change to value NaN to say 'no
+% 		%position'.
+% 		if isempty(idx)
+% 			idx = NaN;
+% 		end
+% 		
+% 		%Add to list of hits
+% 		if isempty(hits)
+% 			hits = idx;
+% 		else
+% 			hits(end+1) = idx;
+% 		end		
+% 	end
 		
 	
 	%Take earliest hit, split word
