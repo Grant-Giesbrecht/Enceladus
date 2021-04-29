@@ -1,5 +1,5 @@
 function x=Xl(mL, mf)
-%ZC	Calculates the impedance of an inductor.
+%ZL	Calculates the impedance of an inductor.
 %
 %	Z = ZL(ML, MF) Calculates the impedance of an inductor with inductance
 %	ML at the frequency MF, using units of Henry and Hertz.
