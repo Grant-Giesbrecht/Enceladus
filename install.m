@@ -1,13 +1,40 @@
-cd functions
-newpath = pwd;
-disp(['Adding to path: >>', newpath, '<<']);
-addpath(newpath);
+% List of relative directories (relative to install.m's location)
+folders = ["general", "electronics", "plotting", "system"];
 
-cd ../electronics
-newpath = pwd;
-disp(['Adding to path: >>', newpath, '<<']);
-addpath(newpath);
+% Find out where 'install.m' is saved
+file_path = mfilename('fullpath'); % Get full path to this file
+if ismac || isunix
+	trim_idx = find(file_path=='/', 1, 'last'); % Find index for trimming to directory
+elseif ispc % Handle Windows' weird directory system
+	trim_idx = find(file_path=='\', 1, 'last'); % Find index for trimming to directory
+else % Else treat same as mac. Different statement in case new logic to be added
+	trim_idx = find(file_path=='/', 1, 'last'); % Find index for trimming to directory
+end
+local_dir = file_path(1:trim_idx-1);
 
+% cd to directory with 'install.m'
+cd(local_dir);
+
+% Add each listed subdirectory
+first = true;
+for fldr = folders
+	
+	% If not first addition, move back to base directory
+	if ~first
+		cd ..
+	end
+	first = false;
+	
+	% Change to folder
+	cd(fldr);
+	newpath = pwd;
+	disp(['Adding to path: >>', newpath, '<<']);
+	addpath(newpath);
+	
+
+end
+
+% Save path and check for failure
 if (savepath == 0)
     disp(' ')
     disp('***************************************************************');
