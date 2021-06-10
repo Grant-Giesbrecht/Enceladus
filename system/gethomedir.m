@@ -14,6 +14,13 @@ function userDir = gethomedir
 %           C:\Documents and Settings\MyName\Eigene Dateien
 %
 
+% TODO: Try:
+%	if ispc; userdir= getenv('USERPROFILE');
+%	else; userdir= getenv('HOME');
+%	end
+
+
+
 	
 	if ispc
 		userDir = winqueryreg('HKEY_CURRENT_USER',...
