@@ -26,7 +26,7 @@ for fldr = folders
 	first = false;
 	
 	% Change to folder
-	cd(fldr);
+	cd(char(fldr));
 	newpath = pwd;
 	disp(['Adding to path: >>', newpath, '<<']);
 	addpath(newpath);
