@@ -270,7 +270,7 @@ classdef MTable < handle
 				table_line = table_line + obj.joint_char;
 			end
 			
-			table_width = length(table_line);
+			table_width = strlength(table_line);
 			if obj.print_topbottomhbar
 				obj.tableStrs = addTo(obj.tableStrs, table_line);
 				table_line = "";
@@ -286,11 +286,11 @@ classdef MTable < handle
 					
 				switch obj.title_alignment
 					case 'c'
-						table_line = obj.alCenter(obj.title, title_length)
+						table_line = obj.alCenter(obj.title, title_length);
 					case 'r'
-						table_line = obj.alRight(obj.title, title_length)
+						table_line = obj.alRight(obj.title, title_length);
 					case 'l'
-						table_line = obj.alLeft(obj.title, title_length)
+						table_line = obj.alLeft(obj.title, title_length);
 				end
 				
 				if obj.print_sidewalls
@@ -438,7 +438,7 @@ classdef MTable < handle
 				
 				% For each column
 				for c = 1:obj.ncols
-					switch obj.header_alignment(c)
+					switch obj.alignment(c)
 						case 'l'
 							if length(obj.col_padding) >= 2
 								table_line = table_line + ' ' + obj.alLeft(obj.trimmed_contents(r, c), column_widths(c)-2) + ' ';
@@ -616,6 +616,128 @@ classdef MTable < handle
 			end
 			
 		end %================= END trimmed_contents() =====================
+		
+		function table_title(obj, nt)
+			
+			% Update title
+			obj.title = nt;
+			
+			% Enable title print
+			obj.print_titlebar = true;
+			
+			% Force refresh
+			obj.table_up_to_date = false;
+			
+		end
+		
+		function alignc(obj, col_num, val)
+			
+			% Check acceptable val
+			if ~strcmp(val, 'l') && ~strcmp(val, 'r') && ~strcmp(val, 'c')
+				warning(strcat("Alignment symbol ", string(val), " not valid"));
+				val = obj.default_argument;
+			end
+			
+			% Check in bounds
+			if col_num > length(obj.alignment)
+				warning(strcat("Column ", string(col_num), " out of bounds. Cannot set alignment"));
+				return;
+			end
+			
+			% Update data
+			obj.alignment(col_num) = val;
+			obj.table_up_to_date = false;
+			
+		end
+		
+		function alignac(obj, val)
+			for c = 1:obj.ncols
+				obj.alignc(c, val);
+			end
+		end
+		
+		function alignh(obj, col_num, val)
+			
+			% Check acceptable val
+			if ~strcmp(val, 'l') && ~strcmp(val, 'r') && ~strcmp(val, 'c')
+				val = obj.default_argument;
+			end
+			
+			% Check in bounds
+			if col_num > length(obj.header_alignment)
+				return;
+			end
+			
+			% Update data
+			obj.header_alignment(col_num) = val;
+			obj.table_up_to_date = false;
+			
+		end
+		
+		function alignah(obj, val)
+			for c = 1:obj.ncols
+				obj.alignh(c, val);
+			end
+		end
+		
+		function alignt(obj, val)
+			% Check acceptable val
+			if ~strcmp(val, 'l') && ~strcmp(val, 'r') && ~strcmp(val, 'c')
+				val = obj.default_argument;
+			end
+			
+			% Update data
+			obj.title_alignment = val;
+			obj.table_up_to_date = false;
+			
+		end
+		
+		function release_trim(obj, col_num)
+			
+			% Check in bounds
+			if col_num > obj.ncols
+				return;
+			end
+			
+			% Update trim rules
+			obj.trim_rules(col_num).trim_enabled = false;
+			
+			% Force refresh
+			obj.table_up_to_date = false;
+			
+		end
+		
+		function trimc(obj, col_num, alignment, max_len)
+			
+			% Ensure max len not too short
+			if max_len < 3
+				max_len = 3;
+			end
+			
+			% Update rules
+			obj.trim_rules(col_num).trim_enabled = true;
+			obj.trim_rules(col_num).alignment = alignment;
+			obj.trim_rules(col_num).len = max_len;
+			
+			% Force refresh
+			obj.table_up_to_date = false;
+			
+		end
+		
+		function trimac(obj, alignment, max_len)
+			
+			for c = 1:obj.ncol
+				obj.trimc(c, alignment, max_len);
+			end
+			
+		end
+		
+		function g = nxtgood(obj)
+			g = obj.next_is_good;
+		end
+		
+		
+		
 		
 	end %====================== END methods =============================
 	
