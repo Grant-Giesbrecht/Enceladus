@@ -256,7 +256,7 @@ classdef MTable < handle
 			for c = 1:obj.ncols
 				table_line = strcat(table_line, repmat(obj.hbar_char, 1, column_widths(c)));
 				
-				if c+1 < obj.ncols
+				if c < obj.ncols
 					if obj.print_titlebar || ~obj.print_headerinterwalls
 						table_line = strcat(table_line, obj.hbar_char);
 					else
@@ -317,7 +317,7 @@ classdef MTable < handle
 					table_line = table_line + repmat(obj.hbar_char, 1, column_widths(c));
 					
 					% Add hbar to vert. inbetween columns
-					if c+1 < obj.ncols
+					if c < obj.ncols
 						if obj.print_titlebar || ~obj.print_headerinterwalls
 							table_line = strcat(table_line, obj.hbar_char);
 						else
@@ -374,7 +374,7 @@ classdef MTable < handle
 				end
 				
 				% Add wall or space between columns
-				if c+1 < obj.ncols
+				if c < obj.ncols
 					if ~obj.print_headerinterwalls
 						table_line = table_line + ' ';
 					else
@@ -408,7 +408,7 @@ classdef MTable < handle
 					table_line = table_line + repmat(obj.hbar_char, 1, column_widths(c));
 					
 					% Add hbar to vert. inbetween columns
-					if c+1 < obj.ncols
+					if c < obj.ncols
 						if obj.print_titlebar || ~obj.print_headerinterwalls
 							table_line = strcat(table_line, obj.hbar_char);
 						else
@@ -466,7 +466,7 @@ classdef MTable < handle
 					end
 					
 					% Add wall or space between columns
-					if c+1 < obj.ncols
+					if c < obj.ncols
 						if ~obj.print_interwalls
 							table_line = table_line + ' ';
 						else
@@ -498,7 +498,7 @@ classdef MTable < handle
 						table_line = table_line + repmat(obj.hbar_char, 1, column_widths(c));
 
 						% Add hbar to vert. inbetween columns
-						if c+1 < obj.ncols
+						if c < obj.ncols
 							if obj.print_titlebar || ~obj.print_headerinterwalls
 								table_line = strcat(table_line, obj.hbar_char);
 							else
@@ -535,7 +535,7 @@ classdef MTable < handle
 					table_line = table_line + repmat(obj.hbar_char, 1, column_widths(c));
 					
 					% Add hbar to vert. inbetween columns
-					if c+1 < obj.ncols
+					if c < obj.ncols
 						if obj.print_titlebar || ~obj.print_headerinterwalls
 							table_line = strcat(table_line, obj.hbar_char);
 						else
