@@ -17,9 +17,9 @@ function [mult, baseUnit] = parseUnit(unit_str)
 			mult = 1e-3;
 		elseif unit_str(1) == 'K' || unit_str(1) == 'k'
 			mult = 1e3;
-		elseif unit_str(1) == 'M' ||(length(unit_str) >= 3 && unit_str(1:3) == 'meg')
+		elseif unit_str(1) == 'M' ||(length(unit_str) >= 3 && strcmp(unit_str(1:3), 'meg'))
 			mult = 1e6;
-			if length(unit_str) >= 3 && unit_str(1:3) == 'meg'
+			if length(unit_str) >= 3 && strcmp(unit_str(1:3), 'meg')
 				unitStart = 4;
 			end
 		elseif unit_str(1) == 'G'
