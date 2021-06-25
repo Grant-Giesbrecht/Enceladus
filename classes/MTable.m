@@ -341,7 +341,7 @@ classdef MTable < handle
 			
 			% Add joint for sidewall
 			if obj.print_sidewalls
-				table_line = table_line + obj.joint_char;
+				table_line = table_line + obj.wall_char;
 			end
 			
 			for c = 1:obj.ncols
@@ -386,7 +386,7 @@ classdef MTable < handle
 			
 			% Add joint for sidewall
 			if obj.print_sidewalls
-				table_line = table_line + obj.joint_char;
+				table_line = table_line + obj.wall_char;
 			end
 
 			obj.tableStrs = addTo(obj.tableStrs, table_line);
@@ -433,7 +433,7 @@ classdef MTable < handle
 				
 				% Add joint for sidewall
 				if obj.print_sidewalls
-					table_line = table_line + obj.joint_char;
+					table_line = table_line + obj.wall_char;
 				end
 				
 				% For each column
@@ -477,7 +477,7 @@ classdef MTable < handle
 				
 				% Add joint for sidewall
 				if obj.print_sidewalls
-					table_line = table_line + obj.joint_char;
+					table_line = table_line + obj.wall_char;
 				end
 				
 				obj.tableStrs = addTo(obj.tableStrs, table_line);
