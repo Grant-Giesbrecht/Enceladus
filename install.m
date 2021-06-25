@@ -1,5 +1,5 @@
 % List of relative directories (relative to install.m's location)
-folders = ["general", "electronics", "plotting", "system"];
+folders = ["general", "electronics", "plotting", "system", "classes"];
 
 % Find out where 'install.m' is saved
 file_path = mfilename('fullpath'); % Get full path to this file
