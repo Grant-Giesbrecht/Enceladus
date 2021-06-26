@@ -6,8 +6,25 @@ classdef SSheet < handle
 	
 	methods
 		
-		function obj = SSheet(nc)
-			obj.cells = nc;
+		function obj = SSheet(varargin)
+			
+			p = inputParser;
+			p.addParameter('Data', {}, @iscell);
+			p.addParameter('File', "", @(x) isstring(x) || ischar(x));
+			p.parse(varargin{:});
+			
+			obj.cells = {};
+			
+			% If cell provided
+			if numel(p.Results.Data) > 0
+				obj.cells = p.Results.Data;
+			end
+			
+			% If file provided
+			if ~strcmp(p.Results.File, "")
+				obj.cells = readcell(p.Results.File);
+			end
+			
 		end
 		
 		function rdata = range(obj, tl_br)
