@@ -779,7 +779,7 @@ classdef MTable < handle
 
 		function trimac(obj, alignment, max_len)
 
-			for c = 1:obj.ncol
+			for c = 1:obj.ncols
 				obj.trimc(c, alignment, max_len);
 			end
 
