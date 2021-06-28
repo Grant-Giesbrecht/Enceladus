@@ -1,4 +1,6 @@
 function ddf = grid2ddf(labels, data, varargin)
+% Designed for copy and paste of data from spreadsheet into command window
+%
 %
 % Will only work if data grid is all same type
 
