@@ -1,4 +1,4 @@
-function cells2ddf(cells, varargin)
+function ddf = cells2ddf(cells, varargin)
 % Provided a 2D cell array, creates a series of vectors with names to
 % represent the data
 
@@ -95,10 +95,28 @@ function cells2ddf(cells, varargin)
 		end
 	end
 	
+	% Get DDFIO Object
+	if isempty(p.Results.AppendDDF)
+		ddf = DDFIO;
+	else
+		
+		if isa(p.Results.AppendDDF, 'DDFIO')
+			ddf = p.Results.AppendDDF;
+		else
+			ddf = DDFIO;
+		end
+	end
 	
-	ddf = DDFIO;
-	
-	
-	
+	% Assign to DDF
+	idx = 0;
+	for t = titles
+		idx = idx + 1;
+		
+		var_name = strrep(t, " ", "_");
+		var_name = strrep(var_name, string(char(9)), "_");
+		
+		ddf.add(data{idx}, var_name, "");
+		
+	end
 
 end
