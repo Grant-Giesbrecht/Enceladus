@@ -12,6 +12,7 @@ classdef SSheet < handle
 			p.addParameter('Data', {}, @iscell);
 			p.addParameter('File', "", @(x) isstring(x) || ischar(x));
 			p.addParameter('LastCell', "G30", @(x) isstring(x) || ischar(x));
+			p.addParameter('Sheet', "", @(x) isstring(x) || ischar(x));
 			p.parse(varargin{:});
 			
 			obj.cells = {};
@@ -36,6 +37,7 @@ classdef SSheet < handle
 				opt = spreadsheetImportOptions;
 				opt.VariableNames = names; % Must change number of variable names before adjusting data range or will throw error
 				opt.DataRange = strcat(trc, ":", p.Results.LastCell);
+				opt.Sheet = p.Results.Sheet;
 				
 				obj.cells = readcell(p.Results.File, opt);
 			end
