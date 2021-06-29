@@ -1,4 +1,10 @@
-function [str, scaled_val, scaled_unit] = scaleNumUnit(value, unit)
+function [str, scaled_val, scaled_unit] = scaleNumUnit(value, unit, varargin)
+
+	p = inputParser;
+	p.addParameter('DecimalPlaces', -1, @isnumeric);
+	p.parse(varargin{:});
+	
+	
 
 	% Ensure working with base value and unit
 	[mult, baseUnit] = parseUnit(unit);
@@ -43,6 +49,12 @@ function [str, scaled_val, scaled_unit] = scaleNumUnit(value, unit)
 		scaled_val = value;
 	end
 	
-	str = strcat(num2str(scaled_val), " ", scaled_unit);
+	if p.Results.DecimalPlaces >= 0
+		num_str = num2str(scaled_val, strcat("%.",string(p.Results.DecimalPlaces),"f"));
+	else
+		num_str = num2str(scaled_val);
+	end
+	
+	str = strcat(num_str, " ", scaled_unit);
 	
 end
