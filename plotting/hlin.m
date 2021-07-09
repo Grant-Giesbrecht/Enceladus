@@ -10,5 +10,12 @@ function hlin(y, varargin)
 %	See also VLIN, LINE.
 
     xl = xlim;
+	
+	% If HandleVisibility option is not set, add it as false.
+	if ~cellContains(varargin, 'HandleVisibility', true) 
+		varargin{end+1} = 'HandleVisibility';
+		varargin{end+1} = 'off';
+	end
+	
     line([xl(1), xl(2)], [y, y], varargin{:});
 end
