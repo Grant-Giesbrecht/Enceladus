@@ -30,6 +30,7 @@ function fs = linesplit(s, varargin)
 %
 % See also strtrim.
 
+	%TODO: Don't start with spaces
 
 	ruleOptions = {'preserveWords', 'justifyShowBreak', 'justifyIgnoreBreak'};
 
