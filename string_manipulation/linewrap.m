@@ -1,11 +1,11 @@
-function fs = linesplit(s, varargin)
-% LINESPLIT Wrap to limit the length of a string.
+function fs = linewrap(s, varargin)
+% LINEWRAP Wrap to limit the length of a string.
 %
-%	FS = LINESPLIT(S) Limits the length of S to 80 characters per line,
+%	FS = LINEWRAP(S) Limits the length of S to 80 characters per line,
 %	wrapping the string as neccesary and adding hyphens if a word is
 %	broken.
 %
-%	FS = LINESPLIT(..., Name, Value) Specifies line wrapping behavior using
+%	FS = LINEWRAP(..., Name, Value) Specifies line wrapping behavior using
 %	one or more Name,Value pair arguments.
 %
 %	Name,Value pair options:
