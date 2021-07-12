@@ -5,5 +5,10 @@ function g=refl(ZL, Z0)
 %
 %	See also XC, XL.
 
-    g= (ZL-Z0)./(ZL+Z0);
+	% Check if Z0 is provided. If not, assume 50 ohms
+	if ~exist('Z0', 'var')
+		Z0 = 50;
+	end
+
+    g = (ZL-Z0)./(ZL+Z0);
 end
