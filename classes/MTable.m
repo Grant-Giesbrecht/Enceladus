@@ -3,7 +3,7 @@ classdef MTable < handle
 %
 % MTABLE Properties
 %	contents - Data contents
-%	title - title_string
+%	titlestr - title_string
 %	tableStrs - List of strings containing each line of the table
 %	alignment - List of column alignemnts
 %	header_alignment - List of alignments of header columns
@@ -57,14 +57,14 @@ classdef MTable < handle
 
 		%*********** TABLE CONTENTS *******************
 		contents % Data elements
-		title % Title
+		titlestr % Title
 		tableStrs % List of strings containing each line of the table
 
 		%*********** COLUMN FORMATTING OPTIONS *************
 		% Alignment options: l, c, r
 		alignment % List of column alignemnts
 		header_alignment % List of alignments of header columns
-		title_alignment % Alignment char for title
+		title_alignment % Alignment char for titlestr
 		trim_rules % List of trum rules for each column (type = TrimState)
 		default_alignment % (Char) default alignment to assign to new columns
 		default_header_alignment % (char) Default alignment for new header columns
@@ -74,7 +74,7 @@ classdef MTable < handle
 		print_sidewalls % Walls at end of table
 		print_headerinterwalls % WAlls between columns in header bar
 		print_interwalls % Walls between columns
-		print_titlebar % Bar at very top of table w/ a table title
+		print_titlebar % Bar at very top of table w/ a table titlestr
 		print_topbottomhbar % Horiz. bar at top and bottom of table
 		print_titlehbar % Horiz. bar between title and column headers
 		print_headerhbar % Horiz. bar between col. headers and data matrix
@@ -97,7 +97,7 @@ classdef MTable < handle
 
 		function obj = MTable()
 
-			obj.title = "Title";
+			obj.titlestr = "Title";
 			obj.title_alignment = 'c';
 
 			obj.ncols = 0;
@@ -280,8 +280,8 @@ classdef MTable < handle
 			end
 
 			% If not enough room for title
-			if length(obj.title) > title_space
-				extra = length(obj.title) - title_space;
+			if length(obj.titlestr) > title_space
+				extra = length(obj.titlestr) - title_space;
 
 				cc = 0;
 				while extra > 0
@@ -339,11 +339,11 @@ classdef MTable < handle
 
 				switch obj.title_alignment
 					case 'c'
-						table_line = obj.alCenter(obj.title, title_length);
+						table_line = obj.alCenter(obj.titlestr, title_length);
 					case 'r'
-						table_line = obj.alRight(obj.title, title_length);
+						table_line = obj.alRight(obj.titlestr, title_length);
 					case 'l'
-						table_line = obj.alLeft(obj.title, title_length);
+						table_line = obj.alLeft(obj.titlestr, title_length);
 				end
 
 				if obj.print_sidewalls
@@ -670,12 +670,12 @@ classdef MTable < handle
 
 		end %================= END trimmed_contents() =====================
 
-		function table_title(obj, nt)
+		function title(obj, nt)
 
 			% Update title
-			obj.title = nt;
+			obj.titlestr = nt;
 
-			% Enable title print
+			% Enable titlestr print
 			obj.print_titlebar = true;
 
 			% Force refresh
