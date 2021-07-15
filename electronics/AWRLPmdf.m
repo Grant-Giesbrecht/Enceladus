@@ -6,7 +6,26 @@ classdef AWRLPmdf < handle
 		% This property is formatted as an array of AWRLPvar's.
 		gdata 
 		
+	
+		% Block data, this is the main data, ie the data contained in each
+		% of the repeating blocks of the file. Because it repeats in an
+		% extra dimension compared to 'gdata' above, it is not just an
+		% array of AWRLPvars, but a cell array, each cell containing an
+		% array of AWRLPvars similar to gdata.
 		bdata
+		
+		% This is a list of AWRLPvars similar to gdata, except instead of
+		% containing actual data it describes the format that should be
+		% looked for when populating bdata above. It is created in the
+		% header ABWAVE block
+		bform
+
+		% Grid describing 'validity' of data, by which format means length
+		% of each variable in a block
+		validityGrid
+		
+		% Message out
+		msg
 		
 	end
 	
@@ -15,11 +34,18 @@ classdef AWRLPmdf < handle
 		function obj = AWRLPmdf()
 		
 			obj.gdata = [];
-			obj.bdata = [];
-						
+			obj.bdata = {};
+			
+			obj.bform = [];
+			
+			obj.validityGrid = [];
+			
+			msg = "";
 		end
 		
-		function load(obj, filename)
+		function tf = load(obj, filename)
+			
+			tf = true;
 			
 			%Open file
             fid = fopen(filename);
@@ -79,7 +105,8 @@ classdef AWRLPmdf < handle
 							
 							% Add formatting data to bdata
 							nv = AWRLPvar(words(2).str);
-							obj.bdata = addTo(obj.bdata, nv);
+							nv.declareLine = lnum;
+							obj.bform = addTo(obj.bform, nv);
 						else % Unrecognized, must be data block
 							
 							location = 3; % Change to data block mode
@@ -104,7 +131,37 @@ classdef AWRLPmdf < handle
 							
 						end
 					case 2 % InABWAVES block
-						
+						if words(1).str == "%" % Column titles
+							
+							% Loop through words and create block
+							% variables
+							for w = words(2:end)
+								nv = AWRLPvar(w.str);
+								nv.declareLine = lnum;
+								obj.bform = addTo(obj.bform, nv);
+							end
+							
+						elseif words(1).str == "END" || words(1).str == "END<>" %End block
+							location = 0; % Set mode back to general
+							
+							% Use the validity grid to compute the lengths
+							if ~obj.runValidityGrid()
+								tf = false;
+								return;
+							end
+							
+						else % Must be availability/length data
+							
+							% Create new grid row
+							newGridRow = [];
+							for w = words
+								newGridRow = addTo(newGridRow, string(w.str));
+							end
+							
+							% Add to total grid
+							obj.validityGrid = [obj.validityGrid; newGridRow];
+							
+						end
 					case 3 % In data blocks
 					otherwise
 						error("location variable in invalid state!");
@@ -112,6 +169,25 @@ classdef AWRLPmdf < handle
 				
 				
 			end
+			
+		end
+		
+		function tf = runValidityGrid(obj)
+			
+			tf = true;
+			
+			% Check grid is correct size
+			[r,c] = size(obj.validityGrid);
+			if c ~= numel(obj.bform)
+				msg = "Validity grid is wrong size.";
+				tf = false;
+				return;
+			end
+			
+			%TODO: Will currently ignore this grid. Could later use to
+			%check file is not broken/mis-interpreted
+			
+			% purpose is to populate 'validLen' param in AWRLPvar
 			
 		end
 		
@@ -147,7 +223,7 @@ classdef AWRLPmdf < handle
 			
 			% Populate table
 			gt.title("Global Data");
-			gt.row(names)
+			gt.row(names);
 			for r = 1:numrows
 				gt.row(string(rows(r, :)));
 			end

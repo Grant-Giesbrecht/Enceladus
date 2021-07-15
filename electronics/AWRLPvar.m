@@ -4,6 +4,8 @@ classdef AWRLPvar < handle
 		name
 		data
 		size
+		validLen
+		declareLine
 	end
 	
 	methods
@@ -13,6 +15,8 @@ classdef AWRLPvar < handle
 			obj.name = string(name);
 			
 			obj.guessSize();
+			
+			obj.validLen = -1; % Unspecified
 			
 		end
 		
@@ -121,7 +125,7 @@ classdef AWRLPvar < handle
 				
 				% Scan through rows
 				for didx = 1:r
-					c(didx, 1) = obj.data(didx)
+					c(didx, 1) = obj.data(didx);
 				end
 				
 			end
