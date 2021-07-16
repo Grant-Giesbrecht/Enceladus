@@ -19,6 +19,7 @@ classdef AWRLPmdf < handle
 		% looked for when populating bdata above. It is created in the
 		% header ABWAVE block
 		bform
+		bTokensPerLine
 
 		% Grid describing 'validity' of data, by which format means length
 		% of each variable in a block
@@ -37,6 +38,7 @@ classdef AWRLPmdf < handle
 			obj.bdata = {};
 			
 			obj.bform = [];
+			obj.bTokensPerLine = [];
 			
 			obj.validityGrid = [];
 			
@@ -61,6 +63,7 @@ classdef AWRLPmdf < handle
 			% 4 - In data blocks
 			location = 0;
 			recheck = false;
+			blockIdx = 0;
 			
             %Read file line by line
 			lnum = 0;
@@ -76,14 +79,15 @@ classdef AWRLPmdf < handle
 					%Note: char(9) is the tab character
 					words = parseIdx(sline, [" ", char(9)]);
 
-					%Skip blank lines
+					%Skip blank lines, but reset blockIdx counter to zero
 					if isempty(words)
+						blockIdx = 0;
 						continue
 					end
 				else % Recheck prior line (will be processed new way)
 					recheck = false;
 				end
-
+				
 				% Change search behavior based on file state/location
 				switch location
 					
@@ -163,6 +167,31 @@ classdef AWRLPmdf < handle
 							
 						end
 					case 3 % In data blocks
+						
+						% Block index refers to the line of the data block,
+						% NOT the index of the variable being assigned
+						blockIdx = blockIdx + 1;
+						
+						% Check that correct number of tokens/values are
+						% one this line of the file
+						if length(words) ~= obj.bTokensPerLine(blockIdx)
+							tf = false;
+							obj.msg = "Data block on line" + num2str(lnum) + "is the wrong size!";
+							return;
+						end
+						
+						% Copy bform into new data array
+						data = [];
+						for bd = obj.bform
+							data = addTo(data, bd);
+						end
+						
+						for w = words
+							
+							
+							
+						end
+						
 					otherwise
 						error("location variable in invalid state!");
 				end

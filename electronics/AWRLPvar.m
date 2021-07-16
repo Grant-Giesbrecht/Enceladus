@@ -4,7 +4,6 @@ classdef AWRLPvar < handle
 		name
 		data
 		size
-		validLen
 		declareLine
 	end
 	
@@ -15,9 +14,7 @@ classdef AWRLPvar < handle
 			obj.name = string(name);
 			
 			obj.guessSize();
-			
-			obj.validLen = -1; % Unspecified
-			
+						
 		end
 		
 		function guessSize(obj)
