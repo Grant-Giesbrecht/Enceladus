@@ -95,7 +95,11 @@ classdef AWRLPvar < handle
 			
 		end
 		
-		function c = getDataCol(obj, nr) %===== getDataCol ================
+		function c = getDataCol(obj, nr, padval) %===== getDataCol ================
+			
+			if ~exist('padval', 'var')
+				padval = 0;
+			end
 			
 			% If not set, set to minimum size
 			if ~exist('nr', 'var')
@@ -110,6 +114,13 @@ classdef AWRLPvar < handle
 			
 			% Create output of correct size
 			c = zeros(nr, 1);
+			
+			% Change padding value if required
+			if padval ~= 0 && nr > r
+				for pvr = r:nr
+					c(pvr,1) = padval;
+				end
+			end
 			
 			if obj.size == 2
 				
