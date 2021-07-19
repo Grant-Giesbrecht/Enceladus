@@ -654,7 +654,7 @@ classdef AWRLPmdf < handle
 			for b = bd
 				rowtitles = addTo(rowtitles, b.name);
 				
-				datacols{end+1} = b.getDataCol(maxlen);
+				datacols{end+1} = b.getDataCol(maxlen, NaN);
 			end
 			bt.row(rowtitles);
 			
@@ -665,10 +665,10 @@ classdef AWRLPmdf < handle
 				
 				nr = [];
 				for i=1:length(datacols)
-					nr = addTo(nr, string(num2shortstr(datacols{i}(r))));
+					nr = addTo(nr, string(num2shortstr(datacols{i}(r), 'nanstr', '--')));
 				end
 				
-				bt.row(nr)
+				bt.row(nr);
 			end
 			
 			displ(bt.str());
