@@ -1,7 +1,7 @@
 mdf = AWRLPmdf;
 
 
-mdf.debug = true;
+% mdf.debug = true;
 if ~mdf.load("LP_Data_L1_Dev.mdf")
 	displ("ERROR: ", mdf.msg)
 	return;
