@@ -27,6 +27,7 @@ classdef AWRLPmdf < handle
 		
 		% Message out
 		msg
+		debug
 		
 	end
 	
@@ -42,7 +43,9 @@ classdef AWRLPmdf < handle
 			
 			obj.validityGrid = [];
 			
-			msg = "";
+			obj.msg = "";
+			
+			obj.debug = false;
 		end
 		
 		function tf = load(obj, filename)
@@ -86,6 +89,10 @@ classdef AWRLPmdf < handle
 					end
 				else % Recheck prior line (will be processed new way)
 					recheck = false;
+				end
+				
+				if obj.debug 
+					displ("<L", lnum , "> ", sline, " [Mode: ", location , "]");
 				end
 				
 				% Change search behavior based on file state/location
@@ -157,11 +164,11 @@ classdef AWRLPmdf < handle
 						elseif words(1).str == "END" || words(1).str == "END<>" %End block
 							location = 0; % Set mode back to general
 							
-							% Use the validity grid to compute the lengths
-							if ~obj.runValidityGrid()
-								tf = false;
-								return;
-							end
+% 							% Use the validity grid to compute the lengths
+% 							if ~obj.runValidityGrid()
+% 								tf = false;
+% 								return;
+% 							end
 							
 						else % Must be availability/length data
 							
@@ -210,32 +217,37 @@ classdef AWRLPmdf < handle
 			
 		end
 		
-		function tf = runValidityGrid(obj)
-			
-			tf = true;
-			
-			% Check grid is correct size
-			[r,c] = size(obj.validityGrid);
-			if c ~= numel(obj.bform)
-				msg = "Validity grid is wrong size.";
-				tf = false;
-				return;
-			end
-			
-			%TODO: Will currently ignore this grid. Could later use to
-			%check file is not broken/mis-interpreted
-			
-			% purpose is to populate 'validLen' param in AWRLPvar
-			
-		end
+% 		function tf = runValidityGrid(obj) %====== runValidityGrid() ======
+% 			
+% 			tf = true;
+% 			
+% 			% Check grid is correct size
+% 			[r,c] = size(obj.validityGrid);
+% 			if c ~= numel(obj.bform)
+% 				msg = "Validity grid is wrong size.";
+% 				tf = false;
+% 				return;
+% 			end
+% 			
+% 			%TODO: Will currently ignore this grid. Could later use to
+% 			%check file is not broken/mis-interpreted
+% 			
+% 			% purpose is to populate 'validLen' param in AWRLPvar
+% 			
+% 		end %================== END runValidityGrid =======================
 		
-		function calcTokensPerLine(obj)
+		function tf = calcTokensPerLine(obj) %====== calcTokensPerLine =========
 		% CALCTOKENSPERLINE Determine shape of data block
 		%
 		% Using the data in obj.bform, determine the number of tokens per
 		% line in a data block. This information is unsed in processing the
 		% data blocks to come.
 			
+			bIdx_abwave = -1;
+		
+			%************ Calculate Tokens Per Line, Without accounting for
+			% repeated lines due to ABWAVE block **************************
+		
 			line = -1;
 			bIdx = 1;
 			count = 0;
@@ -249,6 +261,11 @@ classdef AWRLPmdf < handle
 					% Check that previous line was not blank, save it if
 					% populated.
 					if line ~= -1
+						
+						% Save location of AB wave block
+						if count > 1 && bIdx_abwave == -1
+							bIdx_abwave = bIdx;
+						end
 						
 						% Save token count
 						obj.bTokensPerLine(bIdx) = count;
@@ -274,6 +291,11 @@ classdef AWRLPmdf < handle
 			% Check that previous line was not blank, save it if
 			% populated.
 			if line ~= -1
+				
+				% Save location of AB wave block
+				if count > 1 && bIdx_abwave == -1
+					bIdx_abwave = bIdx;
+				end
 
 				% Save token count
 				obj.bTokensPerLine(bIdx) = count;
@@ -281,10 +303,42 @@ classdef AWRLPmdf < handle
 				% Increment bIdx
 				bIdx = bIdx + 1;
 			end
+			
+			%************* Insert lines to bTokensPerLine, per the data in
+			%validitygrid *************************************************
+			
+			% Check grid is a plausible size
+			[r,c] = size(obj.validityGrid);
+			if c < 1 || c > numel(obj.bform) || r < 1
+				obj.msg = "Validity grid is wrong size.";
+				tf = false;
+				return;
+			end
+			
+			% Calculate length of each row in validity grid
+			vglen = [];
+			for ridx=1:r
+				vglen(ridx) = sum(obj.validityGrid(ridx,:) == "V");
+			end
+			
+			% Check that max length of grid is length of AB wave param list
+			if obj.bTokensPerLine(bIdx_abwave) ~= max(vglen);
+				obj.msg = "Validity grid is not same size as AB Wave block.";
+				tf = false;
+				return;
+			end
+			
+			% Update bTokensPerLine by expanding the ABWAVE line to the
+			% correct number of rows, ea. of the correct length, according
+			% to the validity grid's data.
+			obj.bTokensPerLine = [obj.bTokensPerLine(1:bIdx_abwave-1), vglen, obj.bTokensPerLine(bIdx_abwave+1:end)];
+			
+			%********* Populate VARLINE based on validity grid ************
 
-		end
+			
+		end %===================== END calcTokensPerLine() ================
 		
-		function s = str(obj)
+		function s = str(obj) %============== str() =======================
 			
 			gt = MTable;
 			names = [];
@@ -323,7 +377,7 @@ classdef AWRLPmdf < handle
 			
 			s = gt.str();
 			
-		end
+		end %========================== END str() =========================
 		
 	end
 	
