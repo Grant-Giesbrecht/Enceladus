@@ -191,34 +191,120 @@ classdef AWRLPmdf < handle
 						end
 					case 3 % In data blocks
 						
-						% Block index refers to the line of the data block,
+						% Block index refers to the line in the data block,
 						% NOT the index of the variable being assigned
 						blockIdx = blockIdx + 1;
 						
 						% Check that correct number of tokens/values are
-						% one this line of the file
+						% on this line of the file
 						if length(words) ~= obj.bTokensPerLine(blockIdx)
 							tf = false;
 							obj.msg = "Data block on line" + num2str(lnum) + "is the wrong size!";
 							return;
 						end
 						
-						% Copy bform into new data array
-						data = [];
-						for bd = obj.bform
-							data = addTo(data, bd);
+						% If entering new block, copy bform into new data array
+						if blockIdx == 1
+
+							data = [];
+							for bd = obj.bform
+								
+								nv = AWRLPvar(bd.name);
+								nv.data = bd.data;
+								nv.size = bd.size;
+								nv.declareLine = bd.declareLine;
+								
+								data = addTo(data, nv);
+							end
+							
+							obj.bdata{end+1} = data;
 						end
 						
-						for w = words
+						% Assign data in words to obj.bdata{end} array
+						wi = 1;
+						
+						% Get variables on line currently being read
+						vll = obj.varline{blockIdx};
+						
+						% Scan through variables in varline
+						for vi = 1:length(vll)
 							
+							if vll(vi).len == 1
+								
+								% Check length of words
+								if wi > length(words)
+									obj.msg = "Too few words on line " + num2str(lnum);
+									tf = false;
+									return;
+								end
+								
+								% Get index of variable
+								idx = obj.bdataIndex(vll(vi).name);
+								if idx == -1
+									obj.msg = "Failed to find variable";
+									tf = false;
+									return;
+								end
+								
+								% Assign data
+								data_arr = obj.bdata{end};
+								data_arr(idx).assign(words(wi).str);
+								obj.bdata{end} = data_arr;
+								
+								wi = wi + 1;
+							else
+								
+								% Check length of words
+								if wi+1 > length(words)
+									obj.msg = "Too few words on line " + num2str(lnum);
+									tf = false;
+									return;
+								end
+								
+								% Get index of variable
+								idx = obj.bdataIndex(vll(vi).name);
+								if idx == -1
+									obj.msg = "Failed to find variable";
+									tf = false;
+									return;
+								end
+								
+								% Assign data
+								data_arr = obj.bdata{end};
+								data_arr(idx).assign(words(wi).str, words(wi+1).str);
+								obj.bdata{end} = data_arr;
+								
+								wi = wi + 2;
+							end
 							
-							
+						end
+						
+						% Is last line, reset block index
+						if blockIdx == length(obj.varline)
+							blockIdx = 0;
 						end
 						
 					otherwise
 						error("location variable in invalid state!");
 				end
 				
+				
+			end
+			
+		end
+		
+		function idx = bdataIndex(obj, name)
+			
+			idx = -1;
+			
+			arr = obj.bdata{end};
+			
+			for vi = 1:length(arr)
+				
+				if strcmp(arr(vi).name, name)
+					idx = vi;
+					return;
+				end
 				
 			end
 			
@@ -254,7 +340,7 @@ classdef AWRLPmdf < handle
 		
 			bIdx_abwave = -1;
 		
-			%************ Calculate Tokens Per Line, Without accounting for
+			%************ Calculate Variables Per Line,  accounting for
 			% repeated lines due to ABWAVE block **************************
 		
 			line = -1;
@@ -278,7 +364,7 @@ classdef AWRLPmdf < handle
 						end
 						
 						% Save token count
-						obj.bTokensPerLine(bIdx) = count;
+% 						obj.bTokensPerLine(bIdx) = count;
 						obj.bVarsPerLine(bIdx) = countWords;
 						
 						% Increment bIdx
@@ -312,7 +398,7 @@ classdef AWRLPmdf < handle
 				end
 
 				% Save token count
-				obj.bTokensPerLine(bIdx) = count;
+% 				obj.bTokensPerLine(bIdx) = count;
 				obj.bVarsPerLine(bIdx) = countWords;
 
 				% Increment bIdx
@@ -437,6 +523,22 @@ classdef AWRLPmdf < handle
 				
 			end
 			
+			%******** Calculate Tokens per line ***************************
+			
+			obj.bTokensPerLine = [];
+			for vi = 1:numel(obj.varline)
+				
+				arr = obj.varline{vi};
+				
+				sumval = 0;
+				for v=arr
+					sumval = sumval + v.len;
+				end
+				
+				obj.bTokensPerLine = addTo(obj.bTokensPerLine, sumval); 
+				
+			end
+			
 		end %===================== END calcTokensPerLine() ================
 		
 		function s = str(obj) %============== str() =======================
@@ -528,6 +630,14 @@ classdef AWRLPmdf < handle
 			end
 			
 		end %========================== END str() =========================
+		
+		function showBlock(obj, bn)
+			
+			bd = obj.bdata{bn};
+			
+			
+			
+		end
 		
 	end
 	
