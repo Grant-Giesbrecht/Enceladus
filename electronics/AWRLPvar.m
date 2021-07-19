@@ -95,7 +95,7 @@ classdef AWRLPvar < handle
 			
 		end
 		
-		function c = getDataCol(obj, nr)
+		function c = getDataCol(obj, nr) %===== getDataCol ================
 			
 			% If not set, set to minimum size
 			if ~exist('nr', 'var')
@@ -127,7 +127,7 @@ classdef AWRLPvar < handle
 				
 			end
 			
-		end
+		end %========================= END getDataCol =====================
 		
 	end
 	
