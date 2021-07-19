@@ -20,6 +20,8 @@ classdef AWRLPmdf < handle
 		% header ABWAVE block
 		bform
 		bTokensPerLine
+		bVarsPerLine
+		varline
 
 		% Grid describing 'validity' of data, by which format means length
 		% of each variable in a block
@@ -40,6 +42,8 @@ classdef AWRLPmdf < handle
 			
 			obj.bform = [];
 			obj.bTokensPerLine = [];
+			obj.bVarsPerLine = [];
+			obj.varline = [];
 			
 			obj.validityGrid = [];
 			
@@ -129,7 +133,10 @@ classdef AWRLPmdf < handle
 							
 							% Determine the shape of the data blocks from
 							% obj.bform data
-							obj.calcTokensPerLine();
+							if ~obj.calcTokensPerLine()
+								tf = false;
+								return;
+							end
 							
 						end
 						
@@ -243,6 +250,8 @@ classdef AWRLPmdf < handle
 		% line in a data block. This information is unsed in processing the
 		% data blocks to come.
 			
+			tf = true;
+		
 			bIdx_abwave = -1;
 		
 			%************ Calculate Tokens Per Line, Without accounting for
@@ -251,6 +260,7 @@ classdef AWRLPmdf < handle
 			line = -1;
 			bIdx = 1;
 			count = 0;
+			countWords = 0;
 			
 			% Scan through block format specifier
 			for i=obj.bform
@@ -263,12 +273,13 @@ classdef AWRLPmdf < handle
 					if line ~= -1
 						
 						% Save location of AB wave block
-						if count > 1 && bIdx_abwave == -1
+						if countWords > 1 && bIdx_abwave == -1
 							bIdx_abwave = bIdx;
 						end
 						
 						% Save token count
 						obj.bTokensPerLine(bIdx) = count;
+						obj.bVarsPerLine(bIdx) = countWords;
 						
 						% Increment bIdx
 						bIdx = bIdx + 1;
@@ -279,10 +290,13 @@ classdef AWRLPmdf < handle
 					
 					% Reset count
 					count = 0;
+					countWords = 0;
 					
 				end
 				
-				count = count + 1;
+				count = count + i.size;
+				countWords = countWords + 1;
+				
 			end
 			
 			
@@ -293,12 +307,13 @@ classdef AWRLPmdf < handle
 			if line ~= -1
 				
 				% Save location of AB wave block
-				if count > 1 && bIdx_abwave == -1
+				if countWords > 1 && bIdx_abwave == -1
 					bIdx_abwave = bIdx;
 				end
 
 				% Save token count
 				obj.bTokensPerLine(bIdx) = count;
+				obj.bVarsPerLine(bIdx) = countWords;
 
 				% Increment bIdx
 				bIdx = bIdx + 1;
@@ -322,7 +337,7 @@ classdef AWRLPmdf < handle
 			end
 			
 			% Check that max length of grid is length of AB wave param list
-			if obj.bTokensPerLine(bIdx_abwave) ~= max(vglen);
+			if obj.bVarsPerLine(bIdx_abwave) ~= max(vglen);
 				obj.msg = "Validity grid is not same size as AB Wave block.";
 				tf = false;
 				return;
@@ -331,10 +346,96 @@ classdef AWRLPmdf < handle
 			% Update bTokensPerLine by expanding the ABWAVE line to the
 			% correct number of rows, ea. of the correct length, according
 			% to the validity grid's data.
-			obj.bTokensPerLine = [obj.bTokensPerLine(1:bIdx_abwave-1), vglen, obj.bTokensPerLine(bIdx_abwave+1:end)];
+			bIdx_endabwave = bIdx_abwave + length(vglen);
+			obj.bVarsPerLine = [obj.bVarsPerLine(1:bIdx_abwave-1), vglen, obj.bVarsPerLine(bIdx_abwave+1:end)];
+			
 			
 			%********* Populate VARLINE based on validity grid ************
-
+			
+			ptr_reset = -1;
+			ptr = 1; % pointer to bform
+			obj.varline = cell(1,length(obj.bVarsPerLine));
+			
+			vgrow = 0;
+			
+			% Loop over each line
+			for ridx = 1:length(obj.bVarsPerLine)
+				
+				% Check if in ABWAVE block
+				if ridx >= bIdx_abwave && ridx < bIdx_endabwave % Is in ABWAVE block
+					
+					% Look at next line of validity grid
+					vgrow = vgrow + 1;
+					
+					% Save index of bform where ABWAVE block starts
+					if ptr_reset == -1
+						ptr_reset = ptr;
+					else % Else if has already been saved, reset pointer to start
+						ptr = ptr_reset;
+					end
+					
+					% Loop over vars on line
+					vidx = 1;
+					while vidx <= obj.bVarsPerLine(ridx)
+						
+						% Skip 'missing' terms
+						while strcmp(char(obj.validityGrid(vgrow, ptr-ptr_reset+1)), 'M')
+							ptr = ptr + 1;
+						end
+						
+						% Take next word and extract data
+						if obj.bform(ptr).size == 1
+							
+							% Add variable to varline
+							ns = struct('name', obj.bform(ptr).name, 'len', 1);
+							obj.varline{ridx} = addTo(obj.varline{ridx}, ns);
+							
+							vidx = vidx + 1;
+							
+						else
+							
+							% Add variable to varline
+							ns = struct('name', obj.bform(ptr).name, 'len', 2);
+							obj.varline{ridx} = addTo(obj.varline{ridx}, ns);
+							
+							vidx = vidx + 1;
+							
+						end
+						ptr = ptr + 1;
+						
+					end
+					
+				else %Not in ABWAVE block
+					
+					% Loop over words on line. 
+					vidx = 1;
+					while vidx <= obj.bVarsPerLine(ridx)
+						
+						% Take next word and extract data
+						if obj.bform(ptr).size == 1
+							
+							% Add variable to varline
+							ns = struct('name', obj.bform(ptr).name, 'len', 1);
+							obj.varline{ridx} = addTo(obj.varline{ridx}, ns);
+							
+							vidx = vidx + 1;
+							
+						else
+							
+							% Add variable to varline
+							ns = struct('name', obj.bform(ptr).name, 'len', 2);
+							obj.varline{ridx} = addTo(obj.varline{ridx}, ns);
+							
+							vidx = vidx + 1;
+							
+						end
+						ptr = ptr + 1;
+						
+					end
+					
+				end
+				
+			end
 			
 		end %===================== END calcTokensPerLine() ================
 		
@@ -376,6 +477,55 @@ classdef AWRLPmdf < handle
 			end
 			
 			s = gt.str();
+			
+			% Print varline if in debug mode
+			if obj.debug
+				
+				vt = MTable;
+				
+				vls = [];
+				for i=1:numel(obj.varline)
+					vls = addTo(vls, length(obj.varline{i}));
+				end
+				
+				vt.title("VARLINE")
+				
+				% Create column titles
+				titlestrs = [];
+				for i=1:max(vls)
+					titlestrs = addTo(titlestrs, strcat("Col ", num2str(i)));
+				end
+				
+				vt.row(titlestrs);
+				
+				% Add each row
+				for vi=1:numel(obj.varline)
+					
+					arr = obj.varline{vi};
+					
+					data = [];
+					for i=1:length(arr)
+						data = addTo(data, strcat(arr(i).name, " SZ=", num2str(arr(i).len), ""));
+					end
+					
+					vt.row(data);
+				end
+				
+				displ(vt.str());
+				
+			end
+			
+			if obj.debug
+				btpl = MTable;
+				btpl.title("bTokensPerLine");
+				btpl.row(["Row", "No. Tokens"]);
+				
+				for i=1:numel(obj.bTokensPerLine)
+					btpl.row([string(num2str(i)), string(num2str(obj.bTokensPerLine(i)))]);
+				end
+				
+				displ(newline, btpl.str());
+			end
 			
 		end %========================== END str() =========================
 		
