@@ -115,6 +115,15 @@ classdef AWRLPmdf < handle
 							
 							location = 3; % Change to data block mode
 							recheck = true; % Reprocess line
+							
+							% Here you can run any processes that need to
+							% occur after the header is complete and the
+							% data scan process is about to start
+							
+							% Determine the shape of the data blocks from
+							% obj.bform data
+							obj.calcTokensPerLine();
+							
 						end
 						
 					case 1 % in header block
@@ -218,6 +227,61 @@ classdef AWRLPmdf < handle
 			
 			% purpose is to populate 'validLen' param in AWRLPvar
 			
+		end
+		
+		function calcTokensPerLine(obj)
+		% CALCTOKENSPERLINE Determine shape of data block
+		%
+		% Using the data in obj.bform, determine the number of tokens per
+		% line in a data block. This information is unsed in processing the
+		% data blocks to come.
+			
+			line = -1;
+			bIdx = 1;
+			count = 0;
+			
+			% Scan through block format specifier
+			for i=obj.bform
+				
+				% Check if new line
+				if i.declareLine ~= line
+					
+					% Check that previous line was not blank, save it if
+					% populated.
+					if line ~= -1
+						
+						% Save token count
+						obj.bTokensPerLine(bIdx) = count;
+						
+						% Increment bIdx
+						bIdx = bIdx + 1;
+					end
+					
+					% Update line number
+					line = i.declareLine;
+					
+					% Reset count
+					count = 0;
+					
+				end
+				
+				count = count + 1;
+			end
+			
+			
+			% Save last line
+			%
+			% Check that previous line was not blank, save it if
+			% populated.
+			if line ~= -1
+
+				% Save token count
+				obj.bTokensPerLine(bIdx) = count;
+
+				% Increment bIdx
+				bIdx = bIdx + 1;
+			end
+
 		end
 		
 		function s = str(obj)
