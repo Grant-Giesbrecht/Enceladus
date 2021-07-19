@@ -633,10 +633,45 @@ classdef AWRLPmdf < handle
 		
 		function showBlock(obj, bn)
 			
+			%TODO: Show empty cells as something other than zero!
 			bd = obj.bdata{bn};
 			
+			% Create table
+			bt = MTable;
+			bt.title("Block " + num2str(bn) + " Data");
+			
+			% Get max len
+			dls = [];
+			for b = bd
+				[r,~] = size(b.data);
+				dls = addTo(dls, r);
+			end
+			maxlen = max(dls);
+			
+			% Add row titles
+			rowtitles = [];
+			datacols = {};
+			for b = bd
+				rowtitles = addTo(rowtitles, b.name);
+				
+				datacols{end+1} = b.getDataCol(maxlen);
+			end
+			bt.row(rowtitles);
 			
 			
+			
+			% Add data
+			for r=1:maxlen
+				
+				nr = [];
+				for i=1:length(datacols)
+					nr = addTo(nr, string(num2shortstr(datacols{i}(r))));
+				end
+				
+				bt.row(nr)
+			end
+			
+			displ(bt.str());
 		end
 		
 	end
