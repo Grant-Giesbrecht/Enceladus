@@ -1,4 +1,4 @@
-function s = num2shortstr(v, zeropoint)
+function s = num2shortstr(v, varargin)
 
 	% TODO: sprintf isn't good enough. Look at .002 for example. It pads
 	% the exponent with '-04' instead of just -4 and will pad the leading
@@ -8,15 +8,28 @@ function s = num2shortstr(v, zeropoint)
 	% '2.3' and -.1 prints as '100e-3' or likewise. This needs to be fixed!
 
 
+	p = inputParser;
+	p.addParameter('Zeropoint', 1e-6, @isnumeric);
+	p.addParameter('imagchar', 'i', @(x) isstring(x) || ischar(x));
+	p.addParameter('junctionchar', '+', @(x) isstring(x) || ischar(x));
+	p.addParameter('junctioncharneg', '-', @(x) isstring(x) || ischar(x));
+	p.addParameter('nanstr', 'NaN', @(x) isstring(x) || ischar(x));
+	p.addParameter('formatstr', '%0.2g', @(x) isstring(x) || ischar(x));
+	p.parse(varargin{:});
+	
 	% Get optional zeropoint argument
-	if ~exist('zeropoint', 'var')
-		zeropoint = 1e-6;
+	zeropoint = p.Results.Zeropoint;
+	imagchar = p.Results.imagchar;
+	junctionchar = p.Results.junctionchar;
+	junctioncharneg = p.Results.junctioncharneg;
+	nanchar = p.Results.nanstr;
+	formatstr = p.Results.formatstr;
+	
+	
+	if isnan(v)
+		s = string(nanchar);
+		return;
 	end
-	
-	imagchar = 'i';
-	formatstr = '%0.2g';
-	junctionchar = '+';
-	
 
 	if abs(real(v)) < zeropoint && abs(imag(v)) < zeropoint % If both R & I are truncated
 		s = "0";
@@ -29,8 +42,13 @@ function s = num2shortstr(v, zeropoint)
 		return;
 	else % If none are truncated
 		sr = sprintf(formatstr, real(v));
-		si = [imagchar, sprintf(formatstr, imag(v))];
-		s = string([sr, junctionchar, si]);
+		if imag(v) > 0
+			si = [imagchar, sprintf(formatstr, imag(v))];
+			s = string([sr, junctionchar, si]);
+		else
+			si = [imagchar, sprintf(formatstr, abs(imag(v)))];
+			s = string([sr, junctioncharneg, si]);
+		end
 		return;
 	end
 
