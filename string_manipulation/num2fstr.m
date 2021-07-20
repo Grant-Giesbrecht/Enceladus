@@ -79,10 +79,12 @@ function s = num2fstr(v, varargin)
 			formatstr = strrep(formatstr, "A", "E")
 		else % Use fixed
 			formatstr = strrep(formatstr, "a", "f");
-			formatstr = strrep(formatstr, "A", "F")
+			formatstr = strrep(formatstr, "A", "f")
 		end
 
 	elseif strcmp(p.Results.Scaling, 'engineering')
+		
+		
 		
 	end
 	
