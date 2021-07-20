@@ -665,7 +665,7 @@ classdef AWRLPmdf < handle
 				
 				nr = [];
 				for i=1:length(datacols)
-					nr = addTo(nr, string(num2shortstr(datacols{i}(r), 'nanstr', '--')));
+					nr = addTo(nr, string(num2fstr(datacols{i}(r), 'nanstr', '--')));
 				end
 				
 				bt.row(nr);
