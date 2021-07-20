@@ -82,7 +82,7 @@ function str = trimzeros(in)
 			for i=length(cs):-1:idxdec+1
 				
 				% Exit when last non-zero value found
-				if cs(i) ~= '0'
+				if cs(i) == '0'
 					trimno = trimno + 1;
 				else
 					trimall = false;
