@@ -1,10 +1,10 @@
-function C = polcomp(mag, arg, varargin)
-% POLCOMP Generate a complex number from magnitude and argument
+function C = polcomplex(mag, arg, varargin)
+% POLCOMPLEX Generate a complex number from magnitude and argument
 %
-%	C = POLCOMP(MAG, ARG) Generate a complex number with magnitude MAG and
+%	C = POLCOMPLEX(MAG, ARG) Generate a complex number with magnitude MAG and
 %	angle ARG.
 %
-%	C = POLCOMP(..., Name, Value) specifies conversion properties using the
+%	C = POLCOMPLEX(..., Name, Value) specifies conversion properties using the
 %	name value pair.
 %
 %	Name/Value pairs:
