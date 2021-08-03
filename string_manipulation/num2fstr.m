@@ -1,5 +1,5 @@
 function s = num2fstr(v, varargin)
-%
+% NUM2FSTR Convert numbers to strings with advanced formatting
 %
 %
 %
@@ -43,69 +43,149 @@ function s = num2fstr(v, varargin)
 	% 'g' formatting wont print as 'engineering' values (ie. 2.3 prints as
 	% '2.3' and -.1 prints as '100e-3' or likewise. This needs to be fixed!
 
-	expectedScaling = {'auto', 'engineering'};
+	%================== Run Input Parser on Varargin ======================
+	
+	expectedScaling = {'auto', 'engineering', 'scientific', 'fixed'};
 
+	emptyMap = containers.Map();
+	
 	p = inputParser;
-	p.addParameter('Zeropoint', 1e-6, @isnumeric);
-	p.addParameter('imagchar', 'i', @(x) isstring(x) || ischar(x));
-	p.addParameter('junctionchar', '+', @(x) isstring(x) || ischar(x));
-	p.addParameter('junctioncharneg', '-', @(x) isstring(x) || ischar(x));
-	p.addParameter('nanstr', 'NaN', @(x) isstring(x) || ischar(x));
-	p.addParameter('formatstr', '%0.2A', @(x) isstring(x) || ischar(x));
+		
+	p.addParameter('ImagStr', 'i*', @(x) isstring(x) || ischar(x)); % String to indicate imaginary numbers
+	p.addParameter('JunctionStr', ' + ', @(x) isstring(x) || ischar(x)); %String to indicate 
+	p.addParameter('JunctionStrNeg', ' - ', @(x) isstring(x) || ischar(x));
+	p.addParameter('NanStr', 'NaN', @(x) isstring(x) || ischar(x));
+	
+	p.addParameter('FormatStr', '%0.2a', @(x) isstring(x) || ischar(x));
 	p.addParameter('Scaling', 'auto', @(x) any(validatestring(x,expectedForms)) );
+	p.addParameter('Units', '', @(x) isstring(x) || ischar(x)); %TODO
+	
+	p.addParameter('Threshold', 1e3, @isnumeric);
+	p.addParameter('ZeroPoint', 1e-6, @isnumeric);
+	
+	p.addParameter('FormatOptions', emptyMap , @(x) strcmp(class(x), 'containers.Map'));
 	p.parse(varargin{:});
 	
-	% Get optional zeropoint argument
-	zeropoint = p.Results.Zeropoint;
-	imagchar = p.Results.imagchar;
-	junctionchar = p.Results.junctionchar;
-	junctioncharneg = p.Results.junctioncharneg;
-	nanchar = p.Results.nanstr;
-	formatstr = p.Results.formatstr;
+	% Read optional arguments
+	opt = p.Results;
 	
+	% Convert any chars in optional arguments to strings
+	opt.ImagStr = string(opt.ImagStr);
+	opt.JunctionStr = string(opt.JunctionStr);
+	opt.JunctionStrNeg = string(opt.JunctionStrNeg);
+	opt.NanStr = string(opt.NanStr);
+
 	
+	%======== Overwrite defaults with any values in FormatOptions =========
 	
-	% Return early if is NaN
+	if ~opt.FormatOptions.isempty() % Check that FormatOptions is not empty
+	
+		% Get list of options using defualts
+		defaults = ccell2mat(p.UsingDefaults); 
+		
+		% For each option in FormatOptions...
+		for kc = opt.FormatOptions.keys
+			
+			k = kc{:};
+			
+			% Check if it is both a valid key, and not overridden in
+			% function arguments
+			if any(k == defaults)
+								
+				% Overwrite defualt value with value from FormatOptions
+				opt.(k) = opt.FormatOptions(k);
+			end
+		end
+	end
+	
+	%==================== Return early if is NaN ==========================
 	if isnan(v)
-		s = string(nanchar);
+		s = string(opt.NanStr);
 		return;
 	end
 	
+	%============ Handle Auto-Formatting (ie. A-tpye) =====================
+	
+	% Calculate thresholds for auto formatting
+	t_hi = abs(opt.Threshold);
+	t_lo = abs(1/opt.Threshold);
+	if t_hi < t_lo
+		t_hi = t_lo;
+		t_lo = abs(opt.Threshold);
+	end
+	
 	% Handle 'a'/'A' formatting
-	if strcmp(p.Results.Scaling, 'auto')
+	use_eng = false;
+	if strcmp(opt.Scaling, 'auto')
 		
-		if abs(v) < 10e-3 || abs(v) > 1e3 % Use scientific
-			formatstr = strrep(formatstr, "a", "e");
-			formatstr = strrep(formatstr, "A", "E");
+		if abs(v) <= t_lo || abs(v) >= t_hi % Use scientific
+			opt.FormatStr = strrep(opt.FormatStr, "a", "e");
+			opt.FormatStr = strrep(opt.FormatStr, "A", "E");
 		else % Use fixed
-			formatstr = strrep(formatstr, "a", "f");
-			formatstr = strrep(formatstr, "A", "f");
+			opt.FormatStr = strrep(opt.FormatStr, "a", "f");
+			opt.FormatStr = strrep(opt.FormatStr, "A", "f");
 		end
 
-	elseif strcmp(p.Results.Scaling, 'engineering')
+	elseif strcmp(opt.Scaling, 'engineering')
+		use_eng = true;
+	elseif strcmp(opt.Scaling, 'fixed')
+		opt.FormatStr = strrep(opt.FormatStr, "a", "g");
+		opt.FormatStr = strrep(opt.FormatStr, "A", "G");
+	elseif strcmp(opt.Scaling, 'scientific')
 		
-		
+		opt.FormatStr = strrep(opt.FormatStr, "a", "e");
+		opt.FormatStr = strrep(opt.FormatStr, "A", "E");
 		
 	end
 	
+	%============== Truncate Sub-Zero Point Values ========================
+	
 	% Check which real/imag components need to be truncated
-	if abs(real(v)) < zeropoint && abs(imag(v)) < zeropoint % If both R & I are truncated
+	if abs(real(v)) < opt.ZeroPoint && abs(imag(v)) < opt.ZeroPoint % If both R & I are truncated
 		s = "0";
-	elseif abs(real(v)) < zeropoint % If only R is truncated
-		s = string([imagchar, sprintf(formatstr, imag(v))]);
-	elseif abs(imag(v)) < zeropoint % If only I is truncated
-		s = string(sprintf(formatstr, real(v)));
-	else % If none are truncated
-		sr = sprintf(formatstr, real(v));
-		if imag(v) > 0
-			si = strcat(imagchar, sprintf(formatstr, imag(v)));
-			s = string(strcat(sr, junctionchar, si));
+	elseif abs(real(v)) < opt.ZeroPoint % If only R is truncated
+		
+		if use_eng
+			vs = num2estr(imag(v));
 		else
-			si = strcat(imagchar, sprintf(formatstr, abs(imag(v))));
-			s = string(strcat(sr, junctioncharneg, si));
+			vs = sprintf(opt.FormatStr, imag(v));
+		end
+		
+		s = string(strcat(opt.ImagStr, vs));
+	elseif abs(imag(v)) < opt.ZeroPoint % If only I is truncated
+		
+		if use_eng
+			vs = num2estr(real(v));
+		else
+			vs = sprintf(opt.FormatStr, real(v));
+		end
+		
+		s = string(vs);
+	else % If none are truncated
+		
+		if use_eng
+			sr = num2estr(real(v));
+			vs = num2estr(imag(v));
+		else
+			sr = sprintf(opt.FormatStr, real(v));
+			vs = sprintf(opt.FormatStr, imag(v));
+		end
+		
+		if imag(v) > 0
+			si = strcat(opt.ImagStr, vs);
+			s = string(strcat(sr, opt.JunctionStr, si));
+		else
+			si = strcat(opt.ImagStr, vs);
+			s = string(strcat(sr, opt.JunctionStrNeg, si));
 		end
 	end
 	
+	% Return Result
 	s = string(s);
 % 	s = trimzeros(s);
 end
+
+
+
+
+
