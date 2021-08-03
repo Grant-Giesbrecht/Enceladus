@@ -1,6 +1,6 @@
 classdef AWRLPmdf < handle
 	
-	properties
+	properties %====================== Properties =========================
 		
 		% Global data taken from the header
 		% This property is formatted as an array of AWRLPvar's.
@@ -28,11 +28,11 @@ classdef AWRLPmdf < handle
 		% Message out
 		msg
 		
-	end
+	end %==================== END Properties ==============================
 	
-	methods
+	methods %=============================== Methods ======================
 		
-		function obj = AWRLPmdf()
+		function obj = AWRLPmdf() %================== Constructor =========
 		
 			obj.gdata = [];
 			obj.bdata = {};
@@ -43,9 +43,9 @@ classdef AWRLPmdf < handle
 			obj.validityGrid = [];
 			
 			msg = "";
-		end
+		end %============================== END Constructor ===============
 		
-		function tf = load(obj, filename)
+		function tf = load(obj, filename) %=========== Load ===============
 			
 			tf = true;
 			
@@ -186,6 +186,7 @@ classdef AWRLPmdf < handle
 							data = addTo(data, bd);
 						end
 						
+						% 
 						for w = words
 							
 							
@@ -199,9 +200,9 @@ classdef AWRLPmdf < handle
 				
 			end
 			
-		end
+		end %============================== END Load ======================
 		
-		function tf = runValidityGrid(obj)
+		function tf = runValidityGrid(obj) %======== runValidityGrid ======
 			
 			tf = true;
 			
@@ -218,9 +219,9 @@ classdef AWRLPmdf < handle
 			
 			% purpose is to populate 'validLen' param in AWRLPvar
 			
-		end
+		end %=========================== END runValidityGrid ==============
 		
-		function s = str(obj)
+		function s = str(obj) %================ str() =====================
 			
 			gt = MTable;
 			names = [];
@@ -259,13 +260,13 @@ classdef AWRLPmdf < handle
 			
 			s = gt.str();
 			
-		end
+		end %============================= END str() ======================
 		
-	end
+	end %================================= END methods ====================
 	
-	methods(Static)
+	methods(Static) %================ Static Methods ======================
 		
-		function assignedVars = matchData2Vars(words, vars)
+		function assignedVars = matchData2Vars(words, vars) %==============
 		% Takes a list of stringIdxs in 'words' and a list of AWRLPvars in 'vars'
 		% and based on the size of data req'd by each var, assigns data to
 		% the vars from 'words'
@@ -296,9 +297,9 @@ classdef AWRLPmdf < handle
 			
 			assignedVars = vars;
 			
-		end
+		end %=========================== END matchData2Vars ===============
 		
-	end
+	end %========================= END Static Methods =====================
 	
 	
 end
