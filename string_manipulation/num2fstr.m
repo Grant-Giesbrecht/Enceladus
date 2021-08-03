@@ -98,10 +98,10 @@ function s = num2fstr(v, varargin)
 	else % If none are truncated
 		sr = sprintf(formatstr, real(v));
 		if imag(v) > 0
-			si = [imagchar, sprintf(formatstr, imag(v))];
+			si = strcat(imagchar, sprintf(formatstr, imag(v)));
 			s = string(strcat(sr, junctionchar, si));
 		else
-			si = [imagchar, sprintf(formatstr, abs(imag(v)))];
+			si = strcat(imagchar, sprintf(formatstr, abs(imag(v))));
 			s = string(strcat(sr, junctioncharneg, si));
 		end
 	end
