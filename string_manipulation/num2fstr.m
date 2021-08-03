@@ -76,10 +76,10 @@ function s = num2fstr(v, varargin)
 		
 		if abs(v) < 10e-3 || abs(v) > 1e3 % Use scientific
 			formatstr = strrep(formatstr, "a", "e");
-			formatstr = strrep(formatstr, "A", "E")
+			formatstr = strrep(formatstr, "A", "E");
 		else % Use fixed
 			formatstr = strrep(formatstr, "a", "f");
-			formatstr = strrep(formatstr, "A", "f")
+			formatstr = strrep(formatstr, "A", "f");
 		end
 
 	elseif strcmp(p.Results.Scaling, 'engineering')
@@ -99,12 +99,13 @@ function s = num2fstr(v, varargin)
 		sr = sprintf(formatstr, real(v));
 		if imag(v) > 0
 			si = [imagchar, sprintf(formatstr, imag(v))];
-			s = string([sr, junctionchar, si]);
+			s = string(strcat(sr, junctionchar, si));
 		else
 			si = [imagchar, sprintf(formatstr, abs(imag(v)))];
-			s = string([sr, junctioncharneg, si]);
+			s = string(strcat(sr, junctioncharneg, si));
 		end
 	end
 	
-	s = trimzeros(s);
+	s = string(s);
+% 	s = trimzeros(s);
 end
