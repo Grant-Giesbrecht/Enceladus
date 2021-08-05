@@ -91,7 +91,7 @@ classdef LPData < handle
 			end
 			
 			% Return value
-			v = obj.gamma_vals
+			v = obj.gamma_vals;
 		end
 		
 		function tf = isCurrent(obj, name) %===============================
