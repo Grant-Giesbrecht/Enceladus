@@ -36,6 +36,25 @@ function s = num2fstr(v, varargin)
 %	OPTIONS: 'auto', 'engineering'
 %	DEFAULT: 'auto'
 
+%**************************************************************************
+% KNOWN ISSUES:															  *
+%**************************************************************************
+%
+% Fixed notation printing gives misleading answer if precision (ie. number
+% after decimal in format string) is too low. For example, '%0.2a' will
+% cause .003 to print as zeros. This is a results of sprintf's behaviors
+% with 'f' type formatting.
+%
+% Complex and real components currently must have same formatting. This
+% could be bad if one were large and one were small.
+%
+% Engineering format ignores precision specified in format string.
+%
+% trimzeros() doesn't trim zeros in exponent of many numbers, including
+% those in engineering format returned by num2estr().
+%
+%**************************************************************************
+
 	% TODO: sprintf isn't good enough. Look at .002 for example. It pads
 	% the exponent with '-04' instead of just -4 and will pad the leading
 	% number with extra zeros. So scientific format for .003 gave
@@ -57,13 +76,13 @@ function s = num2fstr(v, varargin)
 	p.addParameter('NanStr', 'NaN', @(x) isstring(x) || ischar(x));
 	
 	p.addParameter('FormatStr', '%0.2a', @(x) isstring(x) || ischar(x));
-	p.addParameter('Scaling', 'auto', @(x) any(validatestring(x,expectedForms)) );
+	p.addParameter('Scaling', 'auto', @(x) any(validatestring(x,expectedScaling)) );
 	p.addParameter('Units', '', @(x) isstring(x) || ischar(x)); %TODO
 	
 	p.addParameter('Threshold', 1e3, @isnumeric);
 	p.addParameter('ZeroPoint', 1e-6, @isnumeric);
 	
-	p.addParameter('FormatOptions', emptyMap , @(x) strcmp(class(x), 'containers.Map'));
+	p.addParameter('FormatOptions', emptyMap , @(x) isa(x, 'containers.Map'));
 	p.parse(varargin{:});
 	
 	% Read optional arguments
