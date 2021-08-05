@@ -48,14 +48,21 @@ hold off;
 mesh(rg, ig, abs(pg));
 hold on;
 plot3(rz, iz, abs(Pload), '+');
+xlabel("Re\{Z\}");
+ylabel("Im\{Z\}");
+title("Interpolated Grid Data (Impedance Domain)");
+zlabel("P_{Load} (dBm?)");
 
 % Create a contour plot
 figure(3);
 [CM, c] = contour(rg, ig, abs(pg));
 grid on;
+% set(gca,'Color',[.4, .4, .4])
+% set(gca, 'XColor', [.9, .9, .9]);
+% set(gca, 'YColor', [.9, .9, .9]);
 
 figure(1);
-smithcontour(rg, ig, abs(pg), 1);
+smithcontour(rg, ig, abs(pg));
 
 
 
