@@ -1,10 +1,14 @@
-function  smithcontour(re, im, val, Z0)
+function  smithcontour(rg, ig, val, Z0)
 	
 	%Check for optional Z0
 	if ~exist('Z0', 'var')
 		Z0 = 50;
 	end
 
+% 	zl = refl2zl(g, Z0);
+	re = rg; %real(zl);
+	im = ig; %imag(zl);
+	
 	% If meshgrid, convert
 	[rr,cr] = size(re);
 	[ri, ci] = size(im);
@@ -25,10 +29,10 @@ function  smithcontour(re, im, val, Z0)
 	% Plot each contour
 	for arr = sa
 		
-		z = arr.x + arr.y.*sqrt(-1);
+		g = arr.x + arr.y.*sqrt(-1);
 		
 		% Convert real, imag data to reflection coefficient
-		g = (z - Z0)./(z + Z0);
+% 		g = (z - Z0)./(z + Z0);
 		
 		hold on
 		smithplot(g, 'Color', [0, 0, .8], 'Marker', 'none', 'LineStyle', '-');
