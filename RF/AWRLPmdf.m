@@ -674,6 +674,34 @@ classdef AWRLPmdf < handle
 			displ(bt.str());
 		end
 		
+		function lpd = getLPData(obj)
+			 
+			lpd = LPData;
+
+			% Scan over each block
+			for idx = 1:length(obj.bdata)
+
+				% Get indeces of a and b waves in the data block
+				a1idx = obj.bdataIndex("a1(3)");
+				b1idx = obj.bdataIndex("b1(3)");
+				a2idx = obj.bdataIndex("a2(3)");
+				b2idx = obj.bdataIndex("b2(3)");
+
+				% Save data from data block for indexing
+				a1var = obj.bdata{idx}(a2idx);
+				b1var = obj.bdata{idx}(b2idx);
+				a2var = obj.bdata{idx}(a2idx);
+				b2var = obj.bdata{idx}(b2idx);
+
+				% Construct complex values from real + imag, add to output arrays
+				lpd.a1 = addTo(lpd.a1, a1var.data(1, 1) + a1var.data(1, 2)*sqrt(-1));
+				lpd.b1 = addTo(lpd.b1, b1var.data(1, 1) + b1var.data(1, 2)*sqrt(-1));
+				lpd.a2 = addTo(lpd.a2, a2var.data(1, 1) + a2var.data(1, 2)*sqrt(-1));
+				lpd.b2 = addTo(lpd.b2, b2var.data(1, 1) + b2var.data(1, 2)*sqrt(-1));
+
+			end
+		end
+		
 	end
 	
 	methods(Static)
