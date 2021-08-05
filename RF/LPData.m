@@ -73,7 +73,10 @@ classdef LPData < handle
 			
 			% Make sure data is up to date
 			if ~obj.isCurrent("P_LOAD")
-				obj.pload_vals = (obj.a2).^2;
+				
+				% Equation from Pozar (4th ed.) eq. 4,62
+				obj.pload_vals = 0.5 .* abs(obj.a2).^2 - 0.5 .* abs(obj.b2).^2;
+				
 				obj.setCurrent("P_LOAD");
 			end
 			
@@ -91,7 +94,7 @@ classdef LPData < handle
 			end
 			
 			% Return value
-			v = obj.gamma_vals;
+			v = obj.zl_vals;
 		end
 		
 		function tf = isCurrent(obj, name) %===============================
