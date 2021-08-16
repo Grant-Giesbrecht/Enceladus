@@ -1,6 +1,6 @@
-function g=refl(ZL, Z0)
-%REFL Calculate the reflection coefficient of an interface.
-%	g = REFL(ZL, Z0) Calculates reflection coefficient of a transmission
+function g=Z2G(ZL, Z0)
+%Z2G Calculate the reflection coefficient of an interface.
+%	g = Z2G(ZL, Z0) Calculates reflection coefficient of a transmission
 %	line of characteristic impedance Z0 terminated in a load of ZL.
 %
 %	See also XC, XL.
