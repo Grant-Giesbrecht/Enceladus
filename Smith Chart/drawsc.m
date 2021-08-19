@@ -1,4 +1,7 @@
-function drawsc(AH)
+function ndrawn = drawsc(AH)
+
+	style = 'circle';
+	fill = false;
 
 	% Check if axes handle provided
 	if ~exist('AH', 'var')
@@ -8,8 +11,14 @@ function drawsc(AH)
 	% Delete previous objects
 	cla(AH)
 	
-	% Turn background on
-	set(AH, 'visible', 'on');
+	if strcmp(style, 'simple')
+		% Turn background on
+		set(AH, 'visible', 'on');
+	else
+		%Turn background off
+		set(AH, 'visible', 'off');
+		fill = true;
+	end
 	
 	% Turn off X and Y label lines
 	set(AH, 'XColor', 'none');
@@ -17,7 +26,7 @@ function drawsc(AH)
 	
 	% Draw SC circles
 	hold on
-	drawsccircles();
+	ndrawn = drawsccircles(fill);
 
 	% Set limits
 	xlim([-1.1, 1.1]);
@@ -25,5 +34,8 @@ function drawsc(AH)
 	
 	% Set data to be square
 	daspect([1, 1, 1])
+	
+	% Reset color order
+	set(AH, 'ColorOrderIndex', 1);
 
 end

@@ -1,5 +1,13 @@
-function drawsccircles()
+function ndrawn = drawsccircles(fill)
 
+	if ~exist('fill', 'var')
+		fill = false;
+	end
+
+	ndrawn = 0;
+
+	circ_fill_color = [1,1,1];
+	
 	col_Rcirc = [.5, .5, .5];
 	ls_Rcirc = '-';
 	
@@ -15,15 +23,24 @@ function drawsccircles()
 	
 	% Draw outer circle
 	drawcirc(0, 0, 1, 'Color', [0, 0, 0], 'LineStyle', '-');
+	ndrawn = ndrawn + 1;
+	
+	% Fill outer circle
+	if fill
+		fillcirc(0, 0, 1, circ_fill_color);
+	end
 	
 	% Draw impedance circles
 	G_Rcirc = Z2G(Z_Rcirc, 1);
 	for G = G_Rcirc		
 		drawcirc((G+1)/2, 0, (1-G)/2, 'Color', col_Rcirc, 'LineStyle', ls_Rcirc);
+		ndrawn = ndrawn + 1;
 	end
 	
 	% Draw center line
-	line([-1, 1], [0, 0], 'Color', col_Cline, 'LineStyle', ls_Cline)
+	h = line([-1, 1], [0, 0], 'Color', col_Cline, 'LineStyle', ls_Cline);
+	set( get( get( h, 'Annotation'), 'LegendInformation' ), 'IconDisplayStyle', 'off' );
+	ndrawn = ndrawn + 1;
 	
 	% Draw reactance circles
 	radius = 1./Z_Xcirc;
@@ -43,6 +60,7 @@ function drawsccircles()
 		end
 		
 		drawcircenc(1, r, r, 'Color', col_Rcirc, 'LineStyle', ls_Rcirc, 'Mirror', true, 'InnerBounds', inner_bounds);
+		ndrawn = ndrawn + 1;
 	end
 	
 end
