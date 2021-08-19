@@ -26,13 +26,9 @@ function drawsccircles()
 	line([-1, 1], [0, 0], 'Color', col_Cline, 'LineStyle', ls_Cline)
 	
 	% Draw reactance circles
-% 	G_Xcirc = Z2G(Z_Xcirc, 1);
-	radius = 1./Z_Xcirc./2;
+	radius = 1./Z_Xcirc;
 	for r = radius
-		drawcirc(1, r, r, 'Color', col_Rcirc, 'LineStyle', ls_Rcirc);
-% 		drawcirc_encl(1, (G-1)/2, (1-G)/2, 'Color', col_Xcirc, 'LineStyle', ls_Xcirc);
-% 		drawcirc_encl(1, -1*(G-1)/2, (1-G)/2, 'Color', col_Xcirc, 'LineStyle', ls_Xcirc);
+		drawcircenc(1, r, r, 'Color', col_Rcirc, 'LineStyle', ls_Rcirc, 'Mirror', true);
 	end
 	
-
 end
