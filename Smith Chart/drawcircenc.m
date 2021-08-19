@@ -68,9 +68,6 @@ function h = drawcircenc(x,y,r, varargin)
 		y_bound_in = val(2);
 		r_bound_in = val(3);
 		
-		% Update N
-		theta_bounds = varargin{idx+1};
-		
 		% Delete from varargin
 		varargin(idx+1) = [];
 		varargin(idx) = [];
@@ -89,9 +86,6 @@ function h = drawcircenc(x,y,r, varargin)
 		x_bound_out = val(1);
 		y_bound_out = val(2);
 		r_bound_out = val(3);
-		
-		% Update N
-		theta_bounds = varargin{idx+1};
 		
 		% Delete from varargin
 		varargin(idx+1) = [];
@@ -136,7 +130,11 @@ function h = drawcircenc(x,y,r, varargin)
 		end
 	end
 	
-	if theta_start == -1 || theta_end == -1
+	if theta_end == -1
+		theta_end = theta(end);
+	end
+	
+	if theta_start == -1
 		warning("Failed to find correct theta!");
 	end
 	

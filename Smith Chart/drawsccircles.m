@@ -28,7 +28,21 @@ function drawsccircles()
 	% Draw reactance circles
 	radius = 1./Z_Xcirc;
 	for r = radius
-		drawcircenc(1, r, r, 'Color', col_Rcirc, 'LineStyle', ls_Rcirc, 'Mirror', true);
+		
+		% Get inner circle bounds
+		inner_bounds = [0, 0, 0]; %X, Y, R
+		if r > 4
+			G = Z2G(1, 1);
+			inner_bounds = [(G+1)/2, 0, (1-G)/2];
+		elseif r > 1.5
+			G = Z2G(2, 1);
+			inner_bounds = [(G+1)/2, 0, (1-G)/2];
+		elseif r > .25
+			G = Z2G(5, 1);
+			inner_bounds = [(G+1)/2, 0, (1-G)/2];
+		end
+		
+		drawcircenc(1, r, r, 'Color', col_Rcirc, 'LineStyle', ls_Rcirc, 'Mirror', true, 'InnerBounds', inner_bounds);
 	end
 	
 end

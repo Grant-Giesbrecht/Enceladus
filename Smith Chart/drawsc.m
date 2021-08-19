@@ -12,8 +12,8 @@ function drawsc(AH)
 	set(AH, 'visible', 'on');
 	
 	% Turn off X and Y label lines
-% 	set(AH, 'XColor', 'none');
-% 	set(AH, 'YColor', 'none');
+	set(AH, 'XColor', 'none');
+	set(AH, 'YColor', 'none');
 	
 	% Draw SC circles
 	hold on
