@@ -158,9 +158,11 @@ function h = drawcircenc(x,y,r, varargin)
 	end
 	
 	h = plot(Xencl, Yencl, varargin{:});
+	set( get( get( h, 'Annotation'), 'LegendInformation' ), 'IconDisplayStyle', 'off' );
 	
 	if mirror
-		plot(Xencl, -1.*Yencl, varargin{:});
+		h = plot(Xencl, -1.*Yencl, varargin{:});
+		set( get( get( h, 'Annotation'), 'LegendInformation' ), 'IconDisplayStyle', 'off' );
 	end
 	
 end

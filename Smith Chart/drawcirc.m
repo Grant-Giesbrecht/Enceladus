@@ -20,4 +20,5 @@ function h = drawcirc(x,y,r, varargin)
 	y = r * sin(theta) + y;
 	h = plot(x, y, varargin{:});
 	
+	set( get( get( h, 'Annotation'), 'LegendInformation' ), 'IconDisplayStyle', 'off' );
 end
