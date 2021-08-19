@@ -4,7 +4,7 @@ function [tf, idx] = cellContains(cells_in, value, matchCharStr)
 
 	% Check for optional argument, convertChar
 	if ~exist('matchCharStr', 'var')
-		matchCharStr = false;
+		matchCharStr = true;
 	end
 	
 	% If match strings and chars, convert input to string if is a char
@@ -37,10 +37,14 @@ function [tf, idx] = cellContains(cells_in, value, matchCharStr)
 		end
 		
 		% Not a match if different types
-		if class(val) ~= class(value)
+		try
+			if class(val) ~= class(value)
+				continue;
+			end
+		catch
 			continue;
 		end
-
+		
 		% Check if values match
 		if val == value
 			tf = true;
