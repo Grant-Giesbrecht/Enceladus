@@ -16,8 +16,14 @@ function ndrawn = drawsc(AH)
 		set(AH, 'visible', 'on');
 	else
 		%Turn background off
-		set(AH, 'visible', 'off');
+		set(AH, 'visible', 'on');
+		set(AH, 'color', [240, 240, 240]./255);
 		fill = true;
+		
+		% Create legend, set color to white, hide until called back
+		lgnd = legend(AH);
+		set(lgnd, 'Color', [1,1,1]);
+		set(lgnd, 'Visible', 'off');
 	end
 	
 	% Turn off X and Y label lines
