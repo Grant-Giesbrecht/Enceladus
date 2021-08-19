@@ -1,5 +1,7 @@
-function tf = cellContains(cells_in, value, matchCharStr)
+function [tf, idx] = cellContains(cells_in, value, matchCharStr)
 	
+	idx = -1;
+
 	% Check for optional argument, convertChar
 	if ~exist('matchCharStr', 'var')
 		matchCharStr = false;
@@ -14,7 +16,10 @@ function tf = cellContains(cells_in, value, matchCharStr)
 	[vr, vc] = size(value);
 
 	% For each item
+	idx = 0;
 	for cellval = cells_in
+		
+		idx = idx + 1;
 		
 		% Get value
 		val = cellval{1};
