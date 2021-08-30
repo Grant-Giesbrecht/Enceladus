@@ -45,15 +45,43 @@ classdef LPPoint < handle
 			
 		end
 		
-		function renameFields(obj)
+		function val = getProp(obj, p)
+		% Returns a value for a property. Returns empty if deosnt exist.
+			if ~isfield(obj.props, p)
+				val = [];
+				return;
+			end
 			
+			val = obj.props.(p);
+			
+		end
+		
+		function formatData(obj)
+		% Renames known variables and calculates some parameters required
+		% for many filtering applications
+			
+			% Rename known fields
 			fld = ccell2mat(fields(obj.props));
-			
 			if any(fld == "F1")
 				obj.props = renameStructField(obj.props, 'F1', 'freq');
-			elseif any(fld == "")
-				obj.props = renameStructField(obj.props, '', '');
+			elseif any(fld == "F0")
+				obj.props = renameStructField(obj.props, 'F0', 'freq');
+% 			elseif any(fld == "")
+% 				obj.props = renameStructField(obj.props, '', '');
+% 			elseif any(fld == "")
+% 				obj.props = renameStructField(obj.props, '', '');
 			end
+			
+			% Calculate P-in
+			obj.props.Pin = obj.getPin();
+			
+		end
+		
+		function P = getPin(obj)
+			
+			% Note: This is a modified form of 4,62 in Pozar. I need to
+			% change this to be correct!
+			P = .5*abs(obj.a1(1))^2 - .5*abs(obj.b1(1))^2;
 			
 		end
 	end
