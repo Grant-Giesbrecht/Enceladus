@@ -14,4 +14,6 @@ function result = ccell2mat(ca)
 		end
 	end
 
+	result = flatten(result);
+	
 end
