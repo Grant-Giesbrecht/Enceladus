@@ -711,7 +711,7 @@ classdef AWRLPmdf < handle
 					lpp.b2 = addTo(lpp.b2, b2var.data(1, 1) + b2var.data(1, 2)*sqrt(-1));
 				end
 				
-				% Populate 'props'
+				% Populate 'props' from bdata cell
 				for bi = 1:numel(obj.bdata{idx})
 					
 					% If index recognized as a1, a2, b1, b2, skip it
@@ -732,11 +732,26 @@ classdef AWRLPmdf < handle
 					
 				end
 				
+				% Populate 'props' from global data
+				for g = obj.gdata
+					
+					% Skip known to be unhelpful parameters
+					if contains(g.name, "NHARM") || contains(g.name, "index")
+						continue;
+					end
+					
+					lpp.props.(AWRLPmdf.fieldName(g.name)) = g.data;
+					
+				end
+				
+				% Rename known properties
+				lpp.formatData();
+				
 				% Add LPPoint to LPSweep.data
 				lps.data = addTo(lps.data, lpp);
 				
 			end
-			
+						
 		end
 		
 		function lpd = getLPData(obj)
