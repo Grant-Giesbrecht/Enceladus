@@ -1,6 +1,7 @@
 classdef LPData < handle
-% LPDATA Contains load pull data from an MDF file and provides easy access
-% to calculated parameters.
+% LPDATA Contains load pull data and automates access to observable
+% parameters such as Pload or reflection coefficient, saving previous
+% calculations and minimizing number of computations.
 %
 
 	properties %===========================================================
@@ -10,6 +11,9 @@ classdef LPData < handle
 		a2
 		b1
 		b2
+		
+		% Propteries
+		props
 		
 		% Normalization impedance
 		Z0
