@@ -7,6 +7,8 @@ function ph = plotsc(data, varargin)
 	p.addParameter('Domain', "G", @(x) any(validatestring(char(x),expectedDomain)) );
 	p.addParameter('Ax', gca, @(x) isa(x, 'matlab.graphics.axis.Axes') || isa(x, 'matlab.graphics.GraphicsPlaceholder'));
     p.addParameter('Z0', 50, @isnumeric);
+	p.addParameter('ColorVar', [], @isnumeric);
+	p.addParameter('Colormap', [], @isnumeric);
 
     p.parse(varargin{:});
 	
@@ -41,6 +43,19 @@ function ph = plotsc(data, varargin)
 	
 	% Plot results
 	ph = plot(ax, x,y, plotArgs{:});
+	
+	% Add color map to markers
+	if ~isempty(p.Results.ColorVar)
+		
+		if ~isempty(p.Results.Colormap)
+			cmap = p.Results.Colormap;
+		else
+			cmap = colormap;
+		end
+		
+		c = getColorData(p.Results.ColorVar, cmap);
+		ph = scatter(ax, x, y, [], c, 'Marker', '+');
+	end
 
 	% Set datatip to custom format
 	formatdatatipsc(ph, p.Results.Z0);

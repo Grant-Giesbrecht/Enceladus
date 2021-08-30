@@ -1,12 +1,17 @@
 function ndrawn = drawsccircles(fill)
 
+	dark_colors = true;
+
 	if ~exist('fill', 'var')
 		fill = false;
 	end
 
 	ndrawn = 0;
 
-	circ_fill_color = [1,1,1];
+	col_Outcirc = [0, 0, 0];
+	
+	circ_fill_color = [1,1,1]; %White background
+	
 	
 	col_Rcirc = [.5, .5, .5];
 	ls_Rcirc = '-';
@@ -21,8 +26,17 @@ function ndrawn = drawsccircles(fill)
 	
 	Z_Xcirc = [.2, .5, 1, 2, 5, 30];
 	
+	% Change to alternative colors
+	if dark_colors
+		circ_fill_color = [.3176, .3608, .4196]; %Window title bar grey
+		col_Rcirc = [1, .6706, .2431]; % Orange
+		col_Cline = col_Rcirc;
+		col_Xcirc = col_Rcirc;
+		col_Outcirc = col_Rcirc
+	end
+	
 	% Draw outer circle
-	drawcirc(0, 0, 1, 'Color', [0, 0, 0], 'LineStyle', '-');
+	drawcirc(0, 0, 1, 'Color', col_Outcirc, 'LineStyle', '-');
 	ndrawn = ndrawn + 1;
 	
 	% Fill outer circle

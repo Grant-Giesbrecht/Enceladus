@@ -35,11 +35,12 @@ function ndrawn = drawsc(AH)
 	ndrawn = drawsccircles(fill);
 
 	% Set limits
-	xlim([-1.1, 1.1]);
-	ylim([-1.1, 1.1]);
+	xlim([-1.01, 1.01]);
+	ylim([-1.01, 1.01]);
 	
 	% Set data to be square
 	daspect([1, 1, 1])
+	pbaspect([2, 1, 1])
 	
 	% Reset color order
 	set(AH, 'ColorOrderIndex', 1);
