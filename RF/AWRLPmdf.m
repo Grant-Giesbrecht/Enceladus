@@ -674,8 +674,75 @@ classdef AWRLPmdf < handle
 			displ(bt.str());
 		end
 		
+		function lps = getLPSweep(obj, removeHarmonics)
+			
+			if ~exist('removeHarmonics', 'var')
+				removeHarmonics = true;
+			end
+			
+			lps = LPSweep;
+			
+			for idx = 1:length(obj.bdata)
+								
+				lpp = LPPoint;
+				
+				% Get indeces of a and b waves in the data block
+				a1idx = obj.bdataIndex("a1(3)");
+				b1idx = obj.bdataIndex("b1(3)");
+				a2idx = obj.bdataIndex("a2(3)");
+				b2idx = obj.bdataIndex("b2(3)");
+
+				% Save data from data block for indexing
+				a1var = obj.bdata{idx}(a2idx);
+				b1var = obj.bdata{idx}(b2idx);
+				a2var = obj.bdata{idx}(a2idx);
+				b2var = obj.bdata{idx}(b2idx);
+
+				% Construct complex values from real + imag, add to output arrays
+				if ~removeHarmonics
+					lpp.a1 = addTo(lpp.a1, flatten(a1var.data(:, 1) + a1var.data(:, 2)*sqrt(-1)));	
+					lpp.b1 = addTo(lpp.b1, flatten(b1var.data(:, 1) + b1var.data(:, 2)*sqrt(-1)));
+					lpp.a2 = addTo(lpp.a2, flatten(a2var.data(:, 1) + a2var.data(:, 2)*sqrt(-1)));
+					lpp.b2 = addTo(lpp.b2, flatten(b2var.data(:, 1) + b2var.data(:, 2)*sqrt(-1)));
+				else
+					lpp.a1 = addTo(lpp.a1, a1var.data(1, 1) + a1var.data(1, 2)*sqrt(-1));				
+					lpp.b1 = addTo(lpp.b1, b1var.data(1, 1) + b1var.data(1, 2)*sqrt(-1));
+					lpp.a2 = addTo(lpp.a2, a2var.data(1, 1) + a2var.data(1, 2)*sqrt(-1));
+					lpp.b2 = addTo(lpp.b2, b2var.data(1, 1) + b2var.data(1, 2)*sqrt(-1));
+				end
+				
+				% Populate 'props'
+				for bi = 1:numel(obj.bdata{idx})
+					
+					% If index recognized as a1, a2, b1, b2, skip it
+					if any(bi == [a1idx, a2idx, b1idx, b2idx])
+						continue
+					end
+					
+					lpvar = obj.bdata{idx}(bi);
+					
+					% Continue until harmonic number is reported (this will
+					% indicate main data block instead of parameters)
+					if contains(lpvar.name, "harm")
+						continue;
+					end
+					
+					% Else save to 'props'
+					lpp.props.(AWRLPmdf.fieldName(lpvar.name)) = lpvar.data;
+					
+				end
+				
+				% Add LPPoint to LPSweep.data
+				lps.data = addTo(lps.data, lpp);
+				
+			end
+			
+		end
+		
 		function lpd = getLPData(obj)
 			 
+			warning("This function is deprecated. 'getLPSweep()' should be used instead.");
+			
 			lpd = LPData;
 
 			% Scan over each block
@@ -693,7 +760,8 @@ classdef AWRLPmdf < handle
 				a2var = obj.bdata{idx}(a2idx);
 				b2var = obj.bdata{idx}(b2idx);
 
-				% Construct complex values from real + imag, add to output arrays
+				% Construct complex values from real + imag, add to output
+				% arrays (only taking fundamental)
 				lpd.a1 = addTo(lpd.a1, a1var.data(1, 1) + a1var.data(1, 2)*sqrt(-1));
 				lpd.b1 = addTo(lpd.b1, b1var.data(1, 1) + b1var.data(1, 2)*sqrt(-1));
 				lpd.a2 = addTo(lpd.a2, a2var.data(1, 1) + a2var.data(1, 2)*sqrt(-1));
@@ -736,6 +804,15 @@ classdef AWRLPmdf < handle
 			end
 			
 			assignedVars = vars;
+			
+		end
+		
+		function n = fieldName(n)
+			
+			n = strrep(n, "(0)", "");
+			n = strrep(n, "(1)", "");
+			n = strrep(n, "(2)", "");
+			n = strrep(n, "(3)", "");
 			
 		end
 		
