@@ -31,6 +31,8 @@ classdef AWRLPmdf < handle
 		msg
 		debug
 		
+		filename
+		
 	end
 	
 	methods
@@ -50,9 +52,13 @@ classdef AWRLPmdf < handle
 			obj.msg = "";
 			
 			obj.debug = false;
+			
+			obj.filename = "";
 		end
 		
 		function tf = load(obj, filename)
+			
+			obj.filename = filename;
 			
 			tf = true;
 			
