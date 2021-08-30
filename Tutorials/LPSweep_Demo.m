@@ -1,11 +1,16 @@
-% Create MDF object
-mdf = AWRLPmdf;
-mdf.debug = false;
+filename = "LP_3053_4x100_DS3.mdf";
 
-% Read MDF file
-if ~mdf.load("LP_3053_4x100_DS3.mdf")
-	displ("ERROR: ", mdf.msg)
-	return;
+% Create MDF object
+if ~exist('mdf', 'var') || mdf.filename ~= filename
+
+	mdf = AWRLPmdf;
+	mdf.debug = false;
+
+	% Read MDF file
+	if ~mdf.load(filename)
+		displ("ERROR: ", mdf.msg)
+		return;
+	end
 end
 
 lps = mdf.getLPSweep();
