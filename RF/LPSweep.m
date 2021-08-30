@@ -18,14 +18,64 @@ classdef LPSweep < handle
 						
 		end
 		
-		function get(obj, varargin)
+		function lpd = get(obj, varargin)
 			
+			% Create output variable
 			lpd = LPData;
 			
-			for d = obj.data
-% 				if d.props(
-% 					
-% 				end
+			% Create index array to filter
+			idxs = 1:numel(obj.data);
+			
+			% Ensure correct (Divis. by 3) number of arguments
+			if mod(numel(varargin), 3) ~= 0
+				error("Incorrect number of arguments");
+			end
+			
+			% Scan over all filter commands
+			for vi = 1:3:numel(varargin)
+				
+				idxs = obj.filter(varargin{vi}, varargin{vi+1}, varargin{vi+2}, idxs);
+				
+			end
+			
+			% Populate LPData class
+			for idx = idxs
+				
+				lpd.a1 = addTo(lpd.a1, obj.data(idx).a1(1) );
+				lpd.a2 = addTo(lpd.a2, obj.data(idx).a2(1) );
+				lpd.b1 = addTo(lpd.b1, obj.data(idx).b1(1) );
+				lpd.b2 = addTo(lpd.b2, obj.data(idx).b2(1) );
+				
+			end
+			
+		end
+		
+		function idxso = filter(obj, p, v_lo, v_hi, idxsi)
+			
+			idxso = idxsi;
+			
+			% If not specified, must be equal to v_lo
+			if ~exist('v_hi', 'var')
+				v_hi = v_lo;
+			end
+			
+			% If not specified, scan all indecies
+			if ~exist('idxsi', 'var')
+				idxsi = 1:numel(obj.data);
+			end
+			
+			% Scan over all allow indecies
+			for idx = idxsi
+				
+				% If value does not match...
+				pv = obj.data(idx).getProp(p);
+				if isempty(pv) || pv < v_lo || pv > v_hi
+					
+					% Find and remove from output indecies
+					ri = idxso == idx;
+					idxso(ri) = [];
+				end
+				
 			end
 			
 		end
