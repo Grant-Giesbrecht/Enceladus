@@ -80,6 +80,17 @@ classdef LPSweep < handle
 			
 		end
 		
+		function vals = listPropUnique(obj, p, tol)
+			
+			% Default tolerance = 0%
+			if ~exist('tol', 'var')
+				vals = unique(obj.listProp(p));
+				return;
+			end
+			
+			vals = uniquetol(obj.listProp(p), tol);
+		end
+		
 		function vals = listProp(obj, p)
 		% LISTPROP Show values for all LPPoints for specific property 'p'
 		
