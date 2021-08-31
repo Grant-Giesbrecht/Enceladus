@@ -29,8 +29,12 @@ ZL = data.z_l();
 Pload = data.p_load();
 
 % Compute real and imag. parts
-rz = real(ZL);
-iz = imag(ZL);
+% rz = real(ZL);
+% iz = imag(ZL);
+
+G = data.gamma();
+rz = real(G);
+iz = imag(G);
 
 % Set size of grid
 nr = 50;
