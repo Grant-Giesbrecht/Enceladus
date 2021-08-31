@@ -699,8 +699,8 @@ classdef AWRLPmdf < handle
 				b2idx = obj.bdataIndex("b2(3)");
 
 				% Save data from data block for indexing
-				a1var = obj.bdata{idx}(a2idx);
-				b1var = obj.bdata{idx}(b2idx);
+				a1var = obj.bdata{idx}(a1idx);
+				b1var = obj.bdata{idx}(b1idx);
 				a2var = obj.bdata{idx}(a2idx);
 				b2var = obj.bdata{idx}(b2idx);
 
