@@ -49,8 +49,8 @@ classdef LPSweep < handle
 				
 				lpd.V1_DC = addTo(lpd.V1_DC, obj.data(idx).getProp("V1"));
 				lpd.I1_DC = addTo(lpd.I1_DC, obj.data(idx).getProp("I1"));
-				lpd.V2_DC = addTo(lpd.V2_DC, obj.data(idx).getProp("I2"));
-				lpd.I2_DC = addTo(lpd.I2_DC, obj.data(idx).getProp("V2"));
+				lpd.V2_DC = addTo(lpd.V2_DC, obj.data(idx).getProp("V2"));
+				lpd.I2_DC = addTo(lpd.I2_DC, obj.data(idx).getProp("I2"));
 			end
 			
 		end
