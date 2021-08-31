@@ -29,6 +29,9 @@ classdef LPData < handle
 		pload_vals
 		zl_vals
 		pae_vals
+		pin_vals
+		pdc_vals
+		draineff_vals
 		
 		% List of Calculated Values that are up-to-date
 		current % Up-to-date values
@@ -61,6 +64,9 @@ classdef LPData < handle
 			obj.pload_vals = [];
 			obj.zl_vals = [];
 			obj.pae_vals = [];
+			obj.pin_vals = [];
+			obj.pdc_vals = [];
+			obj.draineff_vals = [];
 			
 			% Create 'current' as an empty list of strings.
 			% 'current' is a list of all tracked values with values that
@@ -68,7 +74,7 @@ classdef LPData < handle
 			obj.current = "";
 			obj.current(1) = [];
 			
-			obj.current_tracked = ["GAMMA", "P_LOAD", "Z_L", "PAE"]; %List of all values tracked for currency
+			obj.current_tracked = ["GAMMA", "P_LOAD", "Z_L", "PAE", "P_IN", "P_DC", "DRAIN_EFF"]; %List of all values tracked for currency
 			
 			% 'dependencies' is a struct. The field name indicates a
 			% tracked value, the value is a list of other tracked values
@@ -76,6 +82,8 @@ classdef LPData < handle
 			% dependent on Z_L
 			obj.dependencies = [];
 			obj.dependencies.GAMMA = ["Z_L"];
+			obj.dependencies.PAE = ["P_IN", "P_LOAD", "P_DC"];
+			obj.dependencies.DRAINEFF = ["P_LOAD", "P_DC"];
 			
 			
 		end %=========================== END INITAILIZER ==================
@@ -100,7 +108,7 @@ classdef LPData < handle
 			if ~obj.isCurrent("P_LOAD")
 				
 				% Equation from Pozar (4th ed.) eq. 4,62
-				obj.pload_vals = 0.5 .* abs(obj.a2).^2 - 0.5 .* abs(obj.b2).^2;
+				obj.pload_vals = 0.5 .* abs(obj.a2).^2 - 0.5 .* abs(obj.b2).^2; %TODO: Seems like a & b should be flipped?
 				
 				obj.setCurrent("P_LOAD");
 			end
@@ -109,12 +117,38 @@ classdef LPData < handle
 			v = obj.pload_vals;
 		end %=========================== END P_LOAD =======================
 		
+		function v = p_in(obj) %===========================================
+			
+			% Make sure data is up-to-date
+			if ~obj.isCurrent("P_IN")
+				
+				% Taken from p_load function and modified to work for input
+				obj.pin_vals = 0.5 .* abs(obj.a1).^2 - 0.5 .* abs(obj.b1).^2;
+				
+				obj.setCurrent("P_IN");
+			end
+			
+			v = obj.pin_vals;
+			
+		end %=========================== END P_IN =========================
+		
+		function v = p_dc(obj) %===========================================
+			
+			if ~obj.isCurrent("P_DC")
+				obj.pdc_vals = abs(obj.V1_DC .* obj.I1_DC) + abs(obj.V2_DC .* obj.I2_DC);				
+				obj.setCurrent("P_DC");
+			end
+			
+			v = obj.pdc_vals;
+			
+		end %=========================== END P_DC =========================
+		
 		function v = z_l(obj) %==========================================
 		% Converts the load pull gammas to impedances
 		
 			if ~obj.isCurrent("Z_L")
-				obj.gamma(); % Make sure gamma has been calculated
-				obj.zl_vals = obj.Z0 .* (1 + obj.gamma_vals)./(1 - obj.gamma_vals);
+				% NOTE: USes calls to gamma to make sure gamma is current
+				obj.zl_vals = obj.Z0 .* (1 + obj.gamma())./(1 - obj.gamma());
 				obj.setCurrent("Z_L");
 			end
 			
@@ -125,7 +159,7 @@ classdef LPData < handle
 		function v = pae(obj) %============================================
 			
 			if ~obj.isCurrent("PAE")
-				obj.pae_vals = (obj.p_load() - obj.p_in())./obj.p_dc;
+				obj.pae_vals = 100.*(abs(obj.p_load()) - abs(obj.p_in()))./obj.p_dc;
 				obj.setCurrent("PAE");
 			end
 			
@@ -133,6 +167,17 @@ classdef LPData < handle
 			v = obj.pae_vals;
 			
 		end %========================== END PAE ===========================
+		
+		function v = drain_eff(obj) %=======================================
+			
+			if ~obj.isCurrent("DRAIN_EFF")
+				obj.draineff_vals = 100.* abs(obj.p_load() ./ obj.p_dc());
+				obj.setCurrent("DRAIN_EFF");
+			end
+			
+			v = obj.draineff_vals;
+			
+		end %========================== END DRAINEFF ======================
 		
 		function tf = isCurrent(obj, name) %===============================
 		%ISCURRENT Check if a variable is current
@@ -183,7 +228,76 @@ classdef LPData < handle
 			end
 			
 		end %=================== END SETCURRENT ===========================
-	
+		
+		function plotAll(obj)
+			
+			hold off;
+			subplot(1, 2, 1);
+			plot(obj.p_load(), 'LineStyle', '--');
+			hold on;
+			plot(obj.p_in(), 'LineStyle', ':');
+			plot(obj.p_dc(), 'LineStyle', '-.');
+			legend("P_{Load} (W?)", "P_{In} (W?)", "P_{DC} (W?)");
+			ylabel("Power (Watts)");
+			xlabel("Index");
+			grid on;
+			
+			subplot(1, 2, 2);
+			hold off;
+			plot(obj.pae(), 'LineStyle', '-.');
+			hold on;
+			plot(obj.drain_eff(), 'LineStyle', ':');
+			legend("PAE", "Drain Efficiency");
+			xlabel("Index");
+			ylabel("Efficiency (%)");
+			grid on;
+			
+		end
+		
+		function reset(obj) %==============================================
+			
+			obj.current = "";
+			obj.current(1) = [];
+			
+		end %==============================================================
+		
+		function idxs = gammaIdx(obj, re_min, re_max, im_min, im_max)
+			
+			rg = real(obj.gamma());
+			ig = imag(obj.gamma());
+			
+			% Find indeces that match condition
+			idxs = (rg <= re_max) & (rg >= re_min) & (ig <= im_max) & (ig >= im_min);
+			idxs = find(idxs);
+		end
+		
+		function showIdx(obj, idx)
+			
+			indent = "";
+			rel_indent = "    ";
+			
+			pae = obj.pae();
+			draineff = obj.drain_eff();
+			pin = obj.p_in();
+			pload = obj.p_load();
+			pdc = obj.p_dc();
+			
+			displ(indent, "Data at index ", idx, ":");
+			displ(indent, rel_indent, "a1: ", obj.a1(idx), " (W^.5) Mag: ", abs(obj.a1(idx)));
+			displ(indent, rel_indent, "b1: ", obj.b1(idx), " (W^.5) Mag: ", abs(obj.b1(idx)));
+			displ(indent, rel_indent, "a2: ", obj.a2(idx), " (W^.5) Mag: ", abs(obj.a2(idx)));
+			displ(indent, rel_indent, "b2: ", obj.b2(idx), " (W^.5) Mag: ", abs(obj.b2(idx)));
+			displ(indent, rel_indent, "V1: ", obj.V1_DC(idx), " (V)");
+			displ(indent, rel_indent, "I1: ", obj.I1_DC(idx), " (A)");
+			displ(indent, rel_indent, "V2: ", obj.V2_DC(idx), " (V)");
+			displ(indent, rel_indent, "I2: ", obj.I2_DC(idx), " (A)");
+			displ(indent, rel_indent, "P_In: ", pin(idx), " (W)");
+			displ(indent, rel_indent, "P_Load: ", pload(idx), " (W)");
+			displ(indent, rel_indent, "P_DC: ", pdc(idx), " (W)");
+			displ(indent, rel_indent, "PAE: ", pae(idx), " (%)");
+			displ(indent, rel_indent, "Drain Eff.: ", draineff(idx), " (%)");
+		end
+		
 	end %========================= END METHODS ============================
 		
 end %=========================== END CLASSDEF =============================
