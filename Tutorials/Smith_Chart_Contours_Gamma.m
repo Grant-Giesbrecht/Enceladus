@@ -40,7 +40,7 @@ ni = 50;
 [rg, ig] = meshgrid(linspace(min(rz), max(rz), nr ), linspace( min(iz), max(iz), ni ));
 
 % Interpolate the measured data to the meshgrid
-pg = griddata(rz, iz, Pload, rg, ig);
+pg = griddata(rz, iz, G, rg, ig);
 
 % Plot interpolated values against measured points
 figure(2);
