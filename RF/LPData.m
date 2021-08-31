@@ -12,6 +12,12 @@ classdef LPData < handle
 		b1
 		b2
 		
+		% DC Bias point
+		V1_DC
+		V2_DC
+		I1_DC
+		I2_DC
+		
 		% Propteries
 		props
 		
@@ -22,6 +28,7 @@ classdef LPData < handle
 		gamma_vals
 		pload_vals
 		zl_vals
+		pae_vals
 		
 		% List of Calculated Values that are up-to-date
 		current % Up-to-date values
@@ -43,16 +50,30 @@ classdef LPData < handle
 			obj.b1 = [];
 			obj.b2 = [];
 			
+			obj.V1_DC = [];
+			obj.I1_DC = [];
+			obj.V2_DC = [];
+			obj.I2_DC = [];
+			
 			obj.Z0 = Z0;
 			
 			obj.gamma_vals = [];
 			obj.pload_vals = [];
 			obj.zl_vals = [];
+			obj.pae_vals = [];
 			
+			% Create 'current' as an empty list of strings.
+			% 'current' is a list of all tracked values with values that
+			% are up-to-date/current.
 			obj.current = "";
 			obj.current(1) = [];
-			obj.current_tracked = ["GAMMA", "P_LOAD", "Z_L"];
 			
+			obj.current_tracked = ["GAMMA", "P_LOAD", "Z_L", "PAE"]; %List of all values tracked for currency
+			
+			% 'dependencies' is a struct. The field name indicates a
+			% tracked value, the value is a list of other tracked values
+			% upon which the field-name is dependent. (ie. GAMMA is
+			% dependent on Z_L
 			obj.dependencies = [];
 			obj.dependencies.GAMMA = ["Z_L"];
 			
@@ -99,7 +120,19 @@ classdef LPData < handle
 			
 			% Return value
 			v = obj.zl_vals;
-		end
+		end %========================== END Z_L ===========================
+		
+		function v = pae(obj) %============================================
+			
+			if ~obj.isCurrent("PAE")
+				obj.pae_vals = (obj.p_load() - obj.p_in())./obj.p_dc;
+				obj.setCurrent("PAE");
+			end
+			
+			% Return value
+			v = obj.pae_vals;
+			
+		end %========================== END PAE ===========================
 		
 		function tf = isCurrent(obj, name) %===============================
 		%ISCURRENT Check if a variable is current
