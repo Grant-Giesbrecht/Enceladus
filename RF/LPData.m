@@ -107,8 +107,10 @@ classdef LPData < handle
 			% Make sure data is up to date
 			if ~obj.isCurrent("P_LOAD")
 				
-				% Equation from Pozar (4th ed.) eq. 4,62
-				obj.pload_vals = 0.5 .* abs(obj.a2).^2 - 0.5 .* abs(obj.b2).^2; %TODO: Seems like a & b should be flipped?
+				% Equation from Pozar (4th ed.) eq. 4,62. NOTE: I flipped a
+				% & b because I think Pozar is using an unconventional
+				% description of a vs. b.
+				obj.pload_vals = 0.5 .* abs(obj.b2).^2 - 0.5 .* abs(obj.a2).^2;
 				
 				obj.setCurrent("P_LOAD");
 			end
@@ -244,12 +246,17 @@ classdef LPData < handle
 			
 			subplot(1, 2, 2);
 			hold off;
+			yyaxis left;
 			plot(obj.pae(), 'LineStyle', '-.');
 			hold on;
 			plot(obj.drain_eff(), 'LineStyle', ':');
-			legend("PAE", "Drain Efficiency");
-			xlabel("Index");
 			ylabel("Efficiency (%)");
+			yyaxis right;
+			plot(abs(obj.gamma()));
+			ylabel("|\Gamma|");
+			legend("PAE", "Drain Efficiency", "|\Gamma|");
+			xlabel("Index");
+			
 			grid on;
 			
 		end
