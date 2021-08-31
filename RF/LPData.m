@@ -106,7 +106,7 @@ classdef LPData < handle
 			end
 			
 			% Return value
-			v = obj.gamma_vals;
+			v = obj.pload_vals;
 		end %=========================== END P_LOAD =======================
 		
 		function v = z_l(obj) %==========================================
