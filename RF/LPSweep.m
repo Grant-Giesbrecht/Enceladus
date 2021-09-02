@@ -55,6 +55,30 @@ classdef LPSweep < handle
 			
 		end
 		
+		function lps = getSweep(obj, varargin)
+			
+			% Create output variable
+			lps = LPSweep;
+			
+			% Create index array to filter
+			idxs = 1:numel(obj.data);
+			
+			% Ensure correct (Divis. by 3) number of arguments
+			if mod(numel(varargin), 3) ~= 0
+				error("Incorrect number of arguments");
+			end
+			
+			% Scan over all filter commands
+			for vi = 1:3:numel(varargin)
+				
+				idxs = obj.filter(varargin{vi}, varargin{vi+1}, varargin{vi+2}, idxs);
+				
+			end
+			
+			% Populate LPSweep class
+			lps.data = obj.data(idxs);
+		end
+		
 		function idxso = filter(obj, p, v_lo, v_hi, idxsi)
 			
 			idxso = idxsi;
