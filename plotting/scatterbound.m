@@ -1,18 +1,17 @@
-function scatterbound(x, y, numpt, order, varargin)
+function [plt, fit, Xs, Ys] = scatterbound(x, y, numpt, order, varargin)
 
 	p = inputParser;
     p.KeepUnmatched = true;
 	p.addParameter("ShowDetail", false, @islogical);
 	p.addParameter('Ax', gca, @(x) isa(x, 'matlab.graphics.axis.Axes') || isa(x, 'matlab.graphics.GraphicsPlaceholder'));
-
+	p.addParameter('Exact', false, @islogical);
     p.parse(varargin{:});
 	ax = p.Results.Ax;
-	
+	showDetail = p.Results.ShowDetail;
+		
     % Get plot arguments
     tmp = [fieldnames(p.Unmatched),struct2cell(p.Unmatched)];
     plotArgs = reshape(tmp',[],1)'; 
-
-	showDetail = false;
 
 	xo = [];
 	yo = [];
@@ -69,10 +68,19 @@ function scatterbound(x, y, numpt, order, varargin)
 		scatter(ax, xo, yo, 'Marker', '*', 'MarkerFaceColor', [.8, 0, 0], 'MarkerEdgeColor', [.8, 0, 0]);
 	end
 	
-	% Get fit parameters
-	fit = polyfit(xo, yo, order);
+	if ~p.Results.Exact
+		% Get fit parameters
+		fit = polyfit(xo, yo, order);
+
+		% Draw fit line
+		fitvals = polyval(fit, xo);
+		plt = plot(ax, xo, fitvals, plotArgs{:});	
+	else
+		fit = [];
+		plt = plot(ax, xo, yo, plotArgs{:});	
+	end
 	
-	% Draw fit line
-	plot(ax, xo, polyval(fit, xo), plotArgs{:});
+	Xs = xo;
+	Ys = yo;
 	
 end
