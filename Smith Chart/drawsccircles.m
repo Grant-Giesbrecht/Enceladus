@@ -1,6 +1,6 @@
 function ndrawn = drawsccircles(fill)
 
-	dark_colors = true;
+	dark_colors = false;
 
 	if ~exist('fill', 'var')
 		fill = false;
