@@ -74,7 +74,7 @@ classdef LPData < handle
 			obj.current = "";
 			obj.current(1) = [];
 			
-			obj.current_tracked = ["GAMMA", "P_LOAD", "Z_L", "PAE", "P_IN", "P_DC", "DRAIN_EFF"]; %List of all values tracked for currency
+			obj.current_tracked = ["GAMMA", "P_LOAD", "Z_L", "PAE", "P_IN", "P_DC", "DRAIN_EFF"]; %List of all values tracked for currency. Same as function names but capitolized
 			
 			% 'dependencies' is a struct. The field name indicates a
 			% tracked value, the value is a list of other tracked values
@@ -267,6 +267,65 @@ classdef LPData < handle
 			obj.current(1) = [];
 			
 		end %==============================================================
+		
+		function idx = matchLPPoint(obj, lpp)
+			
+			
+			
+			tol = .01;
+			a1i = equaltolp(obj.a1, lpp.a1, tol);
+			a2i = equaltolp(obj.a2, lpp.a2, tol);
+			b1i = equaltolp(obj.b1, lpp.b1, tol);
+			b2i = equaltolp(obj.b2, lpp.b2, tol);
+			
+% 			a1i = obj.a1 == lpp.a1;
+% 			a2i = obj.a2 == lpp.a2;
+% 			b1i = obj.b1 == lpp.b1;
+% 			b2i = obj.b2 == lpp.b2;
+			
+			fidx = a1i & a2i & b1i & b2i;
+			
+			idx = find(fidx);
+		end
+		
+		function v = getValueByName(obj, propName, idx)
+			
+% 			% Check if exists as property
+% 			if isprop(obj.prop, propName)
+% 				vs = obj.prop(propName);
+% 				v = vs(idx);
+% 				return
+% 			end
+			
+			% Check if exists as function
+			propNameCap = upper(propName);
+			if propNameCap == "GAMMA"
+				vs = obj.gamma();
+				v = vs(idx);
+			elseif propNameCap == "P_LOAD" || propNameCap == "PLOAD"
+				vs = obj.p_load();
+				v = vs(idx);
+			elseif propNameCap == "Z_L" || propNameCap == "ZL"
+				vs = obj.z_l();
+				v = vs(idx);
+			elseif propNameCap == "PAE"
+				vs = obj.pae();
+				v = vs(idx);
+			elseif propNameCap == "P_IN" || propNameCap == "PIN"
+				vs = obj.p_in();
+				v = vs(idx);
+			elseif propNameCap == "P_DC" || propNameCap == "PDC"
+				vs = obj.p_dc();
+				v = vs(idx);
+			elseif propNameCap == "DRAIN_EFF" || propNameCap == "DRAINEFF"
+				vs = obj.drain_eff();
+				v = vs(idx);
+			else
+				warning("Failed to find property " + string(propName));
+				v = [];
+			end
+			
+		end
 		
 		function idxs = gammaIdx(obj, re_min, re_max, im_min, im_max)
 			
