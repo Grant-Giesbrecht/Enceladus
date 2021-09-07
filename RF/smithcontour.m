@@ -16,9 +16,6 @@ function  smithcontour(rg, ig, val, Z0)
 		re = re(1,:);
 		im = im(:,1);
 	end
-	
-	
-	
 
 	% Calculate contours
 	CM = contourc(re, im, val);

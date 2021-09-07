@@ -4,8 +4,12 @@ function contoursc(gamma, val, varargin)
 
 	num_real = 100;
 	num_imag = 100;
-	
-	contour_color = [.8, 0, 0];
+
+	contour_color = [0, 0, .8];
+% 	contour_color = [.8, 0, 0];
+% 	contour_color = [.6667, .0157, .9765];
+% 	contour_color = [.6667, .4157, .9765];
+% 	contour_color = [.7667, .5157, .9765];
 
 	% Generate a grid over the region covered by gamma
 	re_gamma = real(gamma);

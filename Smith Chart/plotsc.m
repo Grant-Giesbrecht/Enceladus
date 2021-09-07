@@ -19,6 +19,7 @@ function ph = plotsc(data, varargin)
 % 		ax = p.Results.Ax;
 % 	end
 	ax = p.Results.Ax;
+	
     % Get plot arguments
     tmp = [fieldnames(p.Unmatched),struct2cell(p.Unmatched)];
     plotArgs = reshape(tmp',[],1)'; 
