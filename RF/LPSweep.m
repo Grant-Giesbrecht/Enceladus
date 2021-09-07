@@ -18,8 +18,70 @@ classdef LPSweep < handle
 						
 		end
 		
-		function lpd = get(obj, varargin)
+		function lps = listGetSweep(obj, lpd, varargin)
 			
+			% Create output variable
+			lps = LPSweep;
+			
+			% Create index array to filter
+			idxs = 1:numel(obj.data);
+			
+			% Ensure correct (Divis. by 3) number of arguments
+			if mod(numel(varargin), 3) ~= 0
+				error("Incorrect number of arguments");
+			end
+			
+			n = numel(varargin)/3;
+			props = strings(1,n);
+			min_list = cell(1,n);
+			max_list = cell(1,n);
+			
+			% Scan over all filter commands
+			idx = 1;
+			for vi = 1:3:numel(varargin)
+			
+				props(idx) = string(varargin{vi});
+				min_list{idx} = varargin{vi+1};
+				max_list{idx} = varargin{vi+2};
+				
+				idx = idx + 1;
+				
+			end
+			
+			% Create list of indecies for every entry in a min or max list.
+			% This is because each point must be filtered seperately.
+			idxl = cell(1, numel(min_list{1}));
+			for i = 1:numel(min_list)
+				idxl{i} = idxs;
+			end
+			
+			% Scan over all filter commands
+			for vi = 1:numel(props)
+				
+				idxl = obj.filterList(props{vi}, min_list{vi}, max_list{vi}, idxl, lpd);
+				
+			end
+			
+			all_idx = unique([idxl{:}]);
+			
+			% Populate LPSweep class
+			lps.data = obj.data(all_idx);
+			
+		end
+		
+		function lpd = get(obj, varargin)
+		% GET Filters LPPoints and returns an LPSweep with all matching
+		% points.
+		%
+		% Performs the same function as GETSWEEP, except returns an LPData
+		% object instead of an LPSweep object.
+		%
+		% LPS = GET(NAME, MIN, MAX, ...) Filters the LPPoints based on 0 or
+		% more filter parameters, each specified as a property name and
+		% maximum and minimum value (inclusive).
+		% 
+		% See also: GETSWEEP, FILTER
+		
 			% Create output variable
 			lpd = LPData;
 			
@@ -56,6 +118,18 @@ classdef LPSweep < handle
 		end
 		
 		function lps = getSweep(obj, varargin)
+		% GETSWEEP Filters LPPoints and returns an LPSweep with all
+		% matching points.
+		%
+		% Performs the same function as GET, except returns an LPSweep
+		% object instead of an LPData object.
+		%
+		% LPS = GETSWEEP(NAME, MIN, MAX, ...) Filters the LPPoints based on
+		% 0 or more filter parameters, each specified as a property name
+		% and maximum and minimum value (inclusive).
+		% 
+		% See also: GET, FILTER
+		
 			
 			% Create output variable
 			lps = LPSweep;
@@ -79,9 +153,52 @@ classdef LPSweep < handle
 			lps.data = obj.data(idxs);
 		end
 		
-		function idxso = filter(obj, p, v_lo, v_hi, idxsi)
+		function idxlo = filterList(obj, p, l_lo, l_hi, idxli, lpd)
 			
-			idxso = idxsi;
+			% If not specified, must be equal to l_lo
+			if ~exist('l_hi', 'var')
+				l_hi = l_lo;
+			end
+			
+			% If not specified, scan all indecies
+			if ~exist('idxli', 'var')
+				idxli = 1:numel(obj.data);
+			end
+			
+			idxlo = idxli;
+			
+			% Scan over all list min/max values
+			for mi = 1:length(l_lo)
+				
+				% Scan over all allow indecies.. filter for this min/max
+				% set
+				for idx = idxli{mi}
+
+					% Get value for property...
+					pv = obj.data(idx).getProp(p);
+					
+					% If property missing, check for match in LPData object
+					if isempty(pv)
+						v_idx =  lpd.matchLPPoint(obj.data(idx));
+						if isempty(v_idx)
+							warning("Failed to find idx " +num2str(idx));
+						end
+						pv = lpd.getValueByName(p, v_idx);
+					end
+					
+					% If value does not match...
+					if isempty(pv) || pv < l_lo(mi) || pv > l_hi(mi)
+
+						% Find and remove from output indecies
+						ri = idxlo{mi} == idx;
+						idxlo{mi}(ri) = [];
+					end
+
+				end
+			end
+		end
+		
+		function idxso = filter(obj, p, v_lo, v_hi, idxsi)
 			
 			% If not specified, must be equal to v_lo
 			if ~exist('v_hi', 'var')
@@ -92,6 +209,8 @@ classdef LPSweep < handle
 			if ~exist('idxsi', 'var')
 				idxsi = 1:numel(obj.data);
 			end
+			
+			idxso = idxsi;
 			
 			% Scan over all allow indecies
 			for idx = idxsi
