@@ -55,7 +55,7 @@ classdef LPSweep < handle
 				idxl{i} = idxs;
 			end
 			
-			displ("At point A, has: ", numel(min_list{1}));
+% 			displ("At point A, has: ", numel(min_list{1}));
 			
 			% Scan over all filter commands
 			for vi = 1:numel(props)
@@ -64,7 +64,7 @@ classdef LPSweep < handle
 				
 			end
 			
-			displ("At point Z, has: ", numel(min_list{2}));
+% 			displ("At point Z, has: ", numel(min_list{2}));
 			
 			all_idx = unique([idxl{:}]);
 			
@@ -174,7 +174,7 @@ classdef LPSweep < handle
 			% Scan over all list min/max values
 			for mi = 1:length(l_lo)
 				
-				displ("Filtering for ",  p, " = [", l_lo(mi), ",", l_hi(mi), "]");
+% 				displ("Filtering for ",  p, " = [", l_lo(mi), ",", l_hi(mi), "]");
 				
 				% Scan over all allow indecies.. filter for this min/max
 				% set
@@ -202,15 +202,15 @@ classdef LPSweep < handle
 
 				end
 				
-				if isempty(idxlo{mi})
-					displ("Eliminated all points for idx " + num2str(mi));
-				else
-					displ("Kept ", numel(idxlo{mi}), " points for idx ", mi);
-				end
-				
-				for ipi = 1:numel(idxlo)
-					displ("    Num. Idxs[",ipi,"]: ", numel(idxlo{ipi}))
-				end
+% 				if isempty(idxlo{mi})
+% 					displ("Eliminated all points for idx " + num2str(mi));
+% 				else
+% 					displ("Kept ", numel(idxlo{mi}), " points for idx ", mi);
+% 				end
+% 				
+% 				for ipi = 1:numel(idxlo)
+% 					displ("    Num. Idxs[",ipi,"]: ", numel(idxlo{ipi}))
+% 				end
 				
 			end
 		end
