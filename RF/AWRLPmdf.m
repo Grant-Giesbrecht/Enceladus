@@ -760,6 +760,88 @@ classdef AWRLPmdf < handle
 						
 		end
 		
+		function lps = getLPSweepOptimized(obj, removeHarmonics)
+			
+			if ~exist('removeHarmonics', 'var')
+				removeHarmonics = true;
+			end
+			
+			lps = LPSweep;
+			data_idx = 1;
+			lps.data = [];
+			
+			for idx = 1:length(obj.bdata)
+								
+				lpp = LPPoint;
+				
+				% Get indeces of a and b waves in the data block
+				a1idx = obj.bdataIndex("a1(3)");
+				b1idx = obj.bdataIndex("b1(3)");
+				a2idx = obj.bdataIndex("a2(3)");
+				b2idx = obj.bdataIndex("b2(3)");
+
+				% Save data from data block for indexing
+				a1var = obj.bdata{idx}(a1idx);
+				b1var = obj.bdata{idx}(b1idx);
+				a2var = obj.bdata{idx}(a2idx);
+				b2var = obj.bdata{idx}(b2idx);
+
+				% Construct complex values from real + imag, add to output arrays
+				if ~removeHarmonics
+					lpp.a1 = addTo(lpp.a1, flatten(a1var.data(:, 1) + a1var.data(:, 2)*sqrt(-1)));	
+					lpp.b1 = addTo(lpp.b1, flatten(b1var.data(:, 1) + b1var.data(:, 2)*sqrt(-1)));
+					lpp.a2 = addTo(lpp.a2, flatten(a2var.data(:, 1) + a2var.data(:, 2)*sqrt(-1)));
+					lpp.b2 = addTo(lpp.b2, flatten(b2var.data(:, 1) + b2var.data(:, 2)*sqrt(-1)));
+				else
+					lpp.a1 = addTo(lpp.a1, a1var.data(1, 1) + a1var.data(1, 2)*sqrt(-1));				
+					lpp.b1 = addTo(lpp.b1, b1var.data(1, 1) + b1var.data(1, 2)*sqrt(-1));
+					lpp.a2 = addTo(lpp.a2, a2var.data(1, 1) + a2var.data(1, 2)*sqrt(-1));
+					lpp.b2 = addTo(lpp.b2, b2var.data(1, 1) + b2var.data(1, 2)*sqrt(-1));
+				end
+				
+				% Populate 'props' from bdata cell
+				for bi = 1:numel(obj.bdata{idx})
+					
+					% If index recognized as a1, a2, b1, b2, skip it
+					if any(bi == [a1idx, a2idx, b1idx, b2idx])
+						continue
+					end
+					
+					lpvar = obj.bdata{idx}(bi);
+					
+					% Continue until harmonic number is reported (this will
+					% indicate main data block instead of parameters)
+					if contains(lpvar.name, "harm")
+						continue;
+					end
+					
+					% Else save to 'props'
+					lpp.props.(AWRLPmdf.fieldName(lpvar.name)) = lpvar.data;
+					
+				end
+				
+				% Populate 'props' from global data
+				for g = obj.gdata
+					
+					% Skip known to be unhelpful parameters
+					if contains(g.name, "NHARM") || contains(g.name, "index")
+						continue;
+					end
+					
+					lpp.props.(AWRLPmdf.fieldName(g.name)) = g.data;
+					
+				end
+				
+				% Rename known properties
+				lpp.formatData();
+				
+				% Add LPPoint to LPSweep.data
+				lps.data(data_idx) = lpp;
+				data_idx = data_idx+1;
+			end
+						
+		end
+		
 		function lpd = getLPData(obj)
 			 
 			warning("This function is deprecated. 'getLPSweep()' should be used instead.");
