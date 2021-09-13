@@ -1,5 +1,5 @@
 function idx = bfind(A, num, len)
-% BFIND Binomial search of vector
+% BFIND Binomial search of sorted vector
 %
 % Searches the vector A for the value 'num' and returns the index of 'num'.
 % Note: If multiple instances of 'num' are present, it is not defined which
