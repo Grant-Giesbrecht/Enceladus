@@ -1,6 +1,7 @@
 function ph = plotsc(data, varargin)
 
 	expectedDomain = {'Z', 'G'};
+	expectedSchemes = {'Light', 'Dark'};
 
     p = inputParser;
     p.KeepUnmatched = true;
@@ -9,6 +10,8 @@ function ph = plotsc(data, varargin)
     p.addParameter('Z0', 50, @isnumeric);
 	p.addParameter('ColorVar', [], @isnumeric);
 	p.addParameter('Colormap', [], @isnumeric);
+	p.addParameter('Scatter', false, @islogical);
+	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
 
     p.parse(varargin{:});
 	
@@ -33,7 +36,7 @@ function ph = plotsc(data, varargin)
 	
 	% If hold is not applied, redraw smith chart
 	if ~ishold
-		nd = drawsc(ax);
+		nd = drawsc(ax, p.Results.Scheme);
 	end
 	
 	% Get x & y coordinates from gamma
@@ -43,7 +46,11 @@ function ph = plotsc(data, varargin)
 	y = mag.*sin(arg);
 	
 	% Plot results
-	ph = plot(ax, x,y, plotArgs{:});
+	if p.Results.Scatter
+		ph = scatter(ax, x, y, plotArgs{:});
+	else
+		ph = plot(ax, x,y, plotArgs{:});
+	end
 	
 	% Add color map to markers
 	if ~isempty(p.Results.ColorVar)
