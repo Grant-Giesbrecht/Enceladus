@@ -1,4 +1,4 @@
-function ndrawn = drawsccircles(fill)
+function ndrawn = drawsccircles(fill, scheme)
 
 	dark_colors = false;
 
@@ -8,31 +8,28 @@ function ndrawn = drawsccircles(fill)
 
 	ndrawn = 0;
 
-	col_Outcirc = [0, 0, 0];
-	
-	circ_fill_color = [1,1,1]; %White background
-	
-	
-	col_Rcirc = [.5, .5, .5];
+	% Define line styles
 	ls_Rcirc = '-';
-	
-	col_Cline = [.5, .5, .5];
 	ls_Cline = '-';
-	
-	col_Xcirc = [.5, .5, .7];
 	ls_Xcirc = '-';
 	
+	% Define inner curve locations
 	Z_Rcirc = [.2, .5, 1, 2, 5, 30];
-	
 	Z_Xcirc = [.2, .5, 1, 2, 5, 30];
 	
 	% Change to alternative colors
-	if dark_colors
+	if strcmp(scheme, 'Dark')
 		circ_fill_color = [.3176, .3608, .4196]; %Window title bar grey
 		col_Rcirc = [1, .6706, .2431]; % Orange
 		col_Cline = col_Rcirc;
 		col_Xcirc = col_Rcirc;
 		col_Outcirc = col_Rcirc
+	else
+		col_Xcirc = [.5, .5, .7];
+		col_Cline = [.5, .5, .5];
+		col_Rcirc = [.5, .5, .5];
+		circ_fill_color = [1,1,1]; %White background
+		col_Outcirc = [0, 0, 0];
 	end
 	
 	% Draw outer circle

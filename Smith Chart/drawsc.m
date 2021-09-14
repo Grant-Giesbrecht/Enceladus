@@ -1,4 +1,16 @@
-function ndrawn = drawsc(AH)
+function ndrawn = drawsc(AH, scheme)
+
+	if ~exist('scheme', 'var')
+		scheme = 'Light';
+	end
+	
+	if strcmp(scheme,'Light')
+		background_color = [240, 240, 240]./255
+		legend_color = [1,1,1];
+	else
+		background_color = [240, 240, 240]./255
+		legend_color = [.6, .6, .6];
+	end
 
 	style = 'circle';
 	fill = false;
@@ -11,18 +23,19 @@ function ndrawn = drawsc(AH)
 	% Delete previous objects
 	cla(AH)
 	
-	if strcmp(style, 'simple')
+	if strcmp(style, 'simple') % This mode is simpler
 		% Turn background on
 		set(AH, 'visible', 'on');
-	else
+	elseif strcmp(style, 'circle') % This mode looks more professional and is optimized to work with schemes
+		
 		%Turn background off
 		set(AH, 'visible', 'on');
-		set(AH, 'color', [240, 240, 240]./255);
+		set(AH, 'color', background_color);
 		fill = true;
 		
 		% Create legend, set color to white, hide until called back
 		lgnd = legend(AH);
-		set(lgnd, 'Color', [1,1,1]);
+		set(lgnd, 'Color', legend_color);
 		set(lgnd, 'Visible', 'off');
 	end
 	
@@ -32,7 +45,7 @@ function ndrawn = drawsc(AH)
 	
 	% Draw SC circles
 	hold on
-	ndrawn = drawsccircles(fill);
+	ndrawn = drawsccircles(fill, scheme);
 
 	% Set limits
 	xlim([-1.01, 1.01]);
@@ -44,5 +57,12 @@ function ndrawn = drawsc(AH)
 	
 	% Reset color order
 	set(AH, 'ColorOrderIndex', 1);
+	
+	
+	% Change color order to dark if in dark scheme
+	if strcmp(scheme, 'Dark')
+		darkcolors = [200, 0, 255;255, 17, 0; 68, 255, 0]./255;
+		colororder(AH, darkcolors);
+	end
 
 end
