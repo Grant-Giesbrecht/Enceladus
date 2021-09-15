@@ -104,21 +104,168 @@ classdef LoadPull < handle
 		%====             Sort and Filter Functions                    ====
 		%==================================================================
 		
-		function filter(obj, varargin) %===================================
+		function idx_filt = filter(obj, idxs, varargin) %===================================
+			
+			% FIlter syntax:
+			% * "max" "min" are valid options, case insensitive
+			% * Otherwise numeric input expected. If single number, will
+			% look for exact match. If two numbers, will look for bound. 
+			% If two numbers are given, either one can be made NaN to
+			% indicate no limit, and thus greater than/less than. This will
+			% be inclusive bounds. 
+			% lp.filter("PAE", "max", "PLOAD", [.19, .21], "freq", 10e9);
+			
+			% Check if idxs provided, if not merge into varargin
+			if ~isnumeric(idxs)
+				varargin = {idxs, varargin{:}};
+				idxs = 1:obj.numpoints();
+			end
+			
+			% Check that correct number of arguments were given11
+			if mod(numel(varargin), 2) ~= 0
+				warning("LoadPull.filter() Requires an even number of arguments.");
+				return;
+			end
+			
+			% Scan through filter list and parse commands
+			demostruct.name = "";
+			demostruct.operation = "";
+			demostruct.value = [];
+			commands_ns = repmat(demostruct, 1, numel(varargin)/2);
+			pop_idx = 1;
+			for fi = 1:2:length(varargin)
+				com = {};
+				com.name = varargin{fi};
+				
+				v = varargin{fi+1};
+				if isnumeric(v)
+					if length(v) == 1
+						com.operation = "EQUAL";
+						com.value = v;
+					elseif isnan(v(1)) && ~isnan(v(2))
+						com.operation = "LESS";
+						com.value = v(2);
+					elseif isnan(v(2)) && ~isnan(v(1))
+						com.operation = "GREATER";
+						com.value = v(1);
+					elseif ~isnan(v(1)) && ~isnan(v(2))
+						com.operation = "RANGE";
+						com.value = v;
+					end
+				elseif isa(v, 'string') || isa(v, 'char')
+					v = upper(v);
+					if strcmp(v, "MAX")
+						com.operation = "MAX";
+						com.value = [];
+					elseif strcmp(v, "MIN")
+						com.operation = "MIN";
+						com.value = [];
+					else
+						try
+							warning("Failed to recognize command: "+com.name+" = " + string(v));
+						catch
+							warning("Failed to recognize command: "+com.name+" = <Class: "+class(v) + ">");
+						end
+						continue;
+					end
+				else
+					try
+						warning("Failed to recognize command: "+com.name+" = " + string(v));
+					catch
+						warning("Failed to recognize command: "+com.name+" = <Class: "+class(v) + ">");
+					end
+					continue;
+				end
+				
+				% Add to command list
+				commands_ns(pop_idx) = com;
+				pop_idx = pop_idx+1;
+				
+			end
+			
+% 			filtcom.name = "PAE"
+% 			fitcom.operation = {"MAX", "MIN", "Equal", "GREATER", "LESS"}
+% 			fitcom.value
 			
 			% Re-order the filter commands so they give top-level sorted
 			% parameter precedence over non-sorted or lower-level sorted
 			% parameters.
-			
+			Is = zeros(1, length(commands_ns));
+			sort_names = upper([obj.sort_info(2:end).name]);
+			count = 1;
+			for fc = commands_ns % Loop over all filter commands
+				
+				% Check if parameter was sorted
+				if any(upper(fc.name) == sort_names)
+					Is(count) = find(upper(fc.name) == sort_names);
+				else
+					Is(count) = inf;
+				end
+				
+				% Increment counter
+				count = count + 1;
+			end
+			[~, I_filt] = sort(Is); % Determine precedence of filter commands
+			commands = commands_ns(I_filt); % Rearrange filter commands
+
 			% Note: returns indecies (and can accept indecies as an
 			% optional parameter). To get a LoadPull object feed indecies
 			% into LoadPull.getLP() function.
 			
 			% For each filter command
+			for cmd = commands
 			
-				% Filter indecies
+				%TODO: Remove this! filterLienar and continue are used as a
+				%simple test.
+				idxs = obj.filterLinear(idxs, idxs, cmd);
+				continue;
 				
-				% Return indecies
+				% Filter indecies ------------------
+				
+				% Check if parameter is sorted
+				if any(cmd.name == sort_names) % Found, do binary searches where possible
+					
+					% Get sort regions (from higher order parameter in
+					% sort_info). Mutliply by indecies
+					si_idx = find(cmd.name == sort_names);
+					regions = obj.sort_info(si_idx-1).regions;
+					
+					% Remove sort_regions from other indecies
+					lin_idxs = idxs;
+					[rows, ~] = size(regions);
+					for ridx = 1:rows
+						
+						% Find end index
+						if regions(ridx, 2) == -1
+							end_idx = obj.numpoints();
+						else
+							end_idx = regions(ridx, 2);
+						end
+						
+						% Remove indecies
+						rmve = regions(ridx, 1):end_idx;
+						lin_idxs(rmve) = [];
+					end
+					
+					
+					% Remove all mismatch indecies in ea. sort region
+					for reg = regions 
+						idxs = filterSortRegion(reg, idxs, cmd);
+					end
+					
+					% Remove all mismatch indecies from linear regions
+					idxs = filterLinear(lin_idxs, idxs, cmd);
+					
+				else % Not found, do linear search
+					
+					% Remove all mismatch indecies (100% linear search)
+					idxs = filterLinear(idxs, idxs, cmd);
+					
+				end	
+			
+			end
+			
+			idx_filt = idxs;
 			
 		end %======================== END FILTER ==========================
 		
@@ -212,19 +359,19 @@ classdef LoadPull < handle
 			elseif name == "V2DC"
 				val = obj.V2_DC;
 			elseif name == "PLOAD"
-				val = obj.comp_Pload;
+				val = obj.pload();
 			elseif name == "PAE"
-				val = obj.comp_PAE;
+				val = obj.pae();
 			elseif name == "GAMMA"
-				val = obj.comp_gamma;
+				val = obj.gamma();
 			elseif name == "PDC"
-				val = obj.comp_Pdc;
+				val = obj.p_dc();
 			elseif name == "PIN"
-				val = obj.comp_Pin;
+				val = obj.p_in();
 			elseif name == "ZL"
-				val = obj.comp_ZL;
+				val = obj.z_l();
 			elseif name == "DRAINEFF"
-				val = obj.comp_DrainEff;
+				val = obj.drain_eff();
 			elseif contains(name, "PROPS.")
 				
 				% Get field name
@@ -313,6 +460,9 @@ classdef LoadPull < handle
 		end
 		
 		function sr = findregions(obj, array, alloc_size)
+		% FINDREGIONS For an array array, finds all regions of matching
+		% values. alloc_size sets how many cells are allocated to the
+		% output array at a time (larger = faster. Defualt = len/10).
 			
 			% Handle optional arguments
 			if ~exist('alloc_size', 'var');
@@ -357,6 +507,7 @@ classdef LoadPull < handle
 		end
 		
 		function rearrange(obj, I)
+		% REARRANGE Rearrange all populated parameters in the object
 			
 			% Determine expected length
 			expected = length(I);
@@ -476,8 +627,89 @@ classdef LoadPull < handle
 			
 		end
 		
+% 		function idx_filt = filterSortRegion(obj, filt_idxs, idxs, cmd)
+% 			
+% 			idx_filt = idxs;
+% 			
+% 			% Get array to filter
+% 			array = obj.getArrayFromName(cmd.name);
+% 			array = array(filt_idxs);
+% 			
+% 			if strcmp(cmd.operation, "MAX")
+% 				match_idx = max(array);
+% 			elseif strcmp(cmd.operation, "MIN")
+% 				match_idx = min(array);
+% 			elseif strcmp(cmd.operation, "EQUAL")
+% 				match_idx = (array == cmd.value);
+% 			elseif strcmp(cmd.operation, "GREATER")
+% 				match_idx = (array >= cmd.value);
+% 			elseif strcmp(cmd.operation, "LESS")
+% 				match_idx = (array <= cmd.value);
+% 			elseif strcmp(cmd.operation, "RANGE")
+% 				match_idx = (array >= cmd.value(1) && array <= cmd.value(2));
+% 			end
+% 			
+% 			% Find indecies to remove
+% 			rmve_idx = filt_idxs(match_idx);
+% 			
+% 			% Remove from master list
+% 			idx_filt(rmve_idx) = [];
+% 		end
+		
+		function idx_out = filterLinear(obj, filt_idxs, idxs, cmd)
+						
+			% Get array to filter
+			array = obj.getArrayFromName(cmd.name);
+			array = array(filt_idxs);
+			
+			if strcmp(cmd.operation, "MAX")
+				maxval = max(array);
+				match_idx = (array == maxval);
+			elseif strcmp(cmd.operation, "MIN")
+				minval = min(array);
+				match_idx = (array == minval);
+			elseif strcmp(cmd.operation, "EQUAL")
+				match_idx = (array == cmd.value);
+			elseif strcmp(cmd.operation, "GREATER")
+				match_idx = (array >= cmd.value);
+			elseif strcmp(cmd.operation, "LESS")
+				match_idx = (array <= cmd.value);
+			elseif strcmp(cmd.operation, "RANGE")
+				match_idx = (array >= cmd.value(1) & array <= cmd.value(2));
+			end
+			
+			% Find indecies to remove
+			rmve_idx = filt_idxs(~match_idx);
+			
+			% Remove from master list
+			idx_out = setdiff(idxs, rmve_idx);
+% 			idx_out(rmve_idx) = [];
+		end
+		
+		function len = numpoints(obj)
+		% NUMPOINTS Returns the number of points in a data array of the
+		% class
+		
+			len = 0;
+			if ~isempty(obj.freq)
+				len = length(obj.freq);
+			elseif ~isempty(obj.a1)
+				len = length(obj.a1);
+			elseif ~isempty(obj.b1)
+				len = length(obj.b1);
+			elseif ~isempty(obj.a2)
+				len = length(obj.a2);
+			elseif ~isempty(obj.b2)
+				len = length(obj.b2);
+			elseif ~isempty(obj.V1_DC)
+				len = length(obj.I1_DC);
+			elseif ~isempty(obj.V2_DC)
+				len = length(obj.I2_DC);
+			end
+		end
 		
 		function showorg(obj)
+		% SHOWORG Display the organizational structure of the object
 			
 			displ("Sort Info:");
 			idx = 0;
