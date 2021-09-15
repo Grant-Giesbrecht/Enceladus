@@ -135,7 +135,6 @@ classdef LoadPull < handle
 		% class is over-sorted, sorting by a bad parameter, or undersorted.
 		
 		sort_list = ccell2mat(varargin);
-% 		sort_list = ["freq", "props.iPower", "PAE"];
 				
 		% For each thing in sort list...
 		for sp = sort_list
@@ -160,7 +159,7 @@ classdef LoadPull < handle
 				[~, I] = sort(array(start_idx:end_idx));
 				
 				% Add missing indecies from outside the sort region
-				I = [1:start_idx-1, I, end_idx+1:length(array)];
+				I = [1:start_idx-1, I+start_idx-1, end_idx+1:length(array)];
 				
 				% Reshuffle all arrays
 				obj.rearrange(I);
@@ -484,12 +483,17 @@ classdef LoadPull < handle
 			idx = 0;
 			for si = obj.sort_info
 				displ("  [", idx, "] Layer: ", si.name);
-				displ("      Regions: ");
-				
-				[rows, ~] = size(si.regions);
-				for r = 1:rows
-					displ("               [", si.regions(r, 1), ", ", si.regions(r, 2), "]"); 
+				if ~isempty(si.regions)
+					displ("      Regions: ");
+
+					[rows, ~] = size(si.regions);
+					for r = 1:rows
+						displ("               [", si.regions(r, 1), ", ", si.regions(r, 2), "]"); 
+					end
+				else
+					displ("      Regions: NONE");
 				end
+				idx = idx + 1;
 			end
 			
 		end
