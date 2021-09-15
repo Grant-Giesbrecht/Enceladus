@@ -873,6 +873,173 @@ classdef AWRLPmdf < handle
 			end
 		end
 		
+		function lp = getLoadPull(obj, removeHarmonics)
+			
+			%TODO: Adding the ability to keep harmonics might be helpful
+			removeHarmonics = true;
+			
+			lp = LoadPull;
+			
+			% Initialize variables to save time
+			len = length(obj.bdata);
+			lp.a1 = zeros(1, len);
+			lp.b1 = zeros(1, len);
+			lp.a2 = zeros(1, len);
+			lp.b2 = zeros(1, len);
+			
+			lp.V1_DC = zeros(1, len);
+			lp.I1_DC = zeros(1, len);
+			lp.V2_DC = zeros(1, len);
+			lp.I2_DC = zeros(1, len);
+			
+			% Get indeces of a and b waves in the data block
+			a1idx = obj.bdataIndex("a1(3)");
+			b1idx = obj.bdataIndex("b1(3)");
+			a2idx = obj.bdataIndex("a2(3)");
+			b2idx = obj.bdataIndex("b2(3)");
+
+			V1idx = obj.bdataIndex("V1(1)");
+			I1idx = obj.bdataIndex("I1(1)");
+			V2idx = obj.bdataIndex("V2(1)");
+			I2idx = obj.bdataIndex("I2(1)");
+			
+			% Pre-allocate variables from bdata
+			freq_in_bdata = false;
+			for bi = 1:numel(obj.bdata{1})		
+				% If index recognized as a1, a2, b1, b2, skip it
+				if any(bi == [a1idx, a2idx, b1idx, b2idx, V1idx, I1idx, V2idx, I2idx])
+					continue
+				end
+
+				lpvar = obj.bdata{1}(bi);
+
+				% Continue until harmonic number is reported (this will
+				% indicate main data block instead of parameters)
+				if contains(lpvar.name, "harm")
+					continue;
+				end
+
+				% Capture frequency in dedicated vector rather than
+				% 'props'
+				if contains(lpvar.name, "F1") || contains(lpvar.name, "F1(1)") || contains(upper(lpvar.name), "FREQ")
+					lp.freq = zeros(1, len);
+				end
+
+				% Else save to 'props'
+				lp.props.(AWRLPmdf.fieldName(lpvar.name)) = zeros(1, len);
+
+			end
+			
+			% For each item in block-data
+			for idx = 1:length(obj.bdata)
+												
+% 				% Get indeces of a and b waves in the data block
+% 				a1idx = obj.bdataIndex("a1(3)");
+% 				b1idx = obj.bdataIndex("b1(3)");
+% 				a2idx = obj.bdataIndex("a2(3)");
+% 				b2idx = obj.bdataIndex("b2(3)");
+% 				
+% 				V1idx = obj.bdataIndex("V1(1)");
+% 				I1idx = obj.bdataIndex("I1(1)");
+% 				V2idx = obj.bdataIndex("V2(1)");
+% 				I2idx = obj.bdataIndex("I2(1)");
+
+				% Save data from data block for indexing
+				a1var = obj.bdata{idx}(a1idx);
+				b1var = obj.bdata{idx}(b1idx);
+				a2var = obj.bdata{idx}(a2idx);
+				b2var = obj.bdata{idx}(b2idx);
+				
+				V1var = obj.bdata{idx}(V1idx);
+				I1var = obj.bdata{idx}(I1idx);
+				V2var = obj.bdata{idx}(V2idx);
+				I2var = obj.bdata{idx}(I2idx);
+
+				% Construct complex values from real + imag, add to output arrays
+				if ~removeHarmonics
+					% Not fully implemented yet!
+					lp.a1(idx) = flatten(a1var.data(:, 1) + a1var.data(:, 2)*sqrt(-1));	
+					lp.b1(idx) = flatten(b1var.data(:, 1) + b1var.data(:, 2)*sqrt(-1));
+					lp.a2(idx) = flatten(a2var.data(:, 1) + a2var.data(:, 2)*sqrt(-1));
+					lp.b2(idx) = flatten(b2var.data(:, 1) + b2var.data(:, 2)*sqrt(-1));
+					
+% 					lp.V1_DC(idx) = flatten(V1var.data(:, 1) + V1var.data(:, 2)*sqrt(-1));	
+% 					lp.I1_DC(idx) = flatten(I1var.data(:, 1) + I1var.data(:, 2)*sqrt(-1));
+% 					lp.V2_DC(idx) = flatten(V2var.data(:, 1) + V2var.data(:, 2)*sqrt(-1));
+% 					lp.I2_DC(idx) = flatten(I2var.data(:, 1) + I2var.data(:, 2)*sqrt(-1));
+				else
+					% Not fully implemented yet!
+					lp.a1(idx) = a1var.data(1, 1) + a1var.data(1, 2)*sqrt(-1);				
+					lp.b1(idx) = b1var.data(1, 1) + b1var.data(1, 2)*sqrt(-1);
+					lp.a2(idx) = a2var.data(1, 1) + a2var.data(1, 2)*sqrt(-1);
+					lp.b2(idx) = b2var.data(1, 1) + b2var.data(1, 2)*sqrt(-1);
+					
+					lp.V1_DC(idx) = V1var.data(1, 1);
+					lp.I1_DC(idx) = I1var.data(1, 1);
+					lp.V2_DC(idx) = V2var.data(1, 1);
+					lp.I2_DC(idx) = I2var.data(1, 1);
+				end
+				
+				% Populate 'props' from bdata cell
+				for bi = 1:numel(obj.bdata{idx})
+					
+					% If index recognized as a1, a2, b1, b2, skip it
+					if any(bi == [a1idx, a2idx, b1idx, b2idx, V1idx, I1idx, V2idx, I2idx])
+						continue
+					end
+					
+					lpvar = obj.bdata{idx}(bi);
+					
+					% Continue until harmonic number is reported (this will
+					% indicate main data block instead of parameters)
+					if contains(lpvar.name, "harm")
+						continue;
+					end
+					
+					% Capture frequency in dedicated vector rather than
+					% 'props'
+					if contains(lpvar.name, "F1") || contains(upper(lpvar.name), "FREQ")
+						lp.freq(idx) = lpvar.data(1, 1);
+					end
+					
+					% Else save to 'props'
+					lp.props.(AWRLPmdf.fieldName(lpvar.name))(idx) = lpvar.data(1, 1);
+					
+				end
+% 
+% 				% Rename known properties
+% 				lpp.formatData();
+% 				
+% 				% Add LPPoint to LPSweep.data
+% 				lp.data = addTo(lp.data, lpp);
+				
+			end
+			
+			% Populate 'props' from global data
+			for g = obj.gdata
+
+				% Skip known to be unhelpful parameters
+				if contains(g.name, "NHARM") || contains(g.name, "index")
+					continue;
+				end
+				
+				% If characteristic impedance, save to dedicated array
+				if contains(g.name, "Z0")
+					lp.Z0 = zeros(1, len) + g.data(1,1) + sqrt(-1)*g.data(1, 2);
+					continue;
+				end
+
+				% Else save to props
+				if numel(g.data) == 1
+					lp.props.(AWRLPmdf.fieldName(g.name)) = zeros(1, len)+g.data;
+				else
+					lp.props.(AWRLPmdf.fieldName(g.name)) = zeros(1, len)+g.data(1, 1) + sqrt(-1)*g.data(1, 2);
+				end
+
+			end
+						
+		end
+		
 	end
 	
 	methods(Static)
