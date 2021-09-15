@@ -134,7 +134,7 @@ classdef LoadPull < handle
 		% number of points per region at each sort-level to indicate if the
 		% class is over-sorted, sorting by a bad parameter, or undersorted.
 		
-		sort_list = varargin{:};
+		sort_list = ccell2mat(varargin);
 % 		sort_list = ["freq", "props.iPower", "PAE"];
 				
 		% For each thing in sort list...
@@ -158,6 +158,9 @@ classdef LoadPull < handle
 				
 				% Sort array. Only keep suffle indecies
 				[~, I] = sort(array(start_idx:end_idx));
+				
+				% Add missing indecies from outside the sort region
+				I = [1:start_idx-1, I, end_idx+1:length(array)];
 				
 				% Reshuffle all arrays
 				obj.rearrange(I);
@@ -189,6 +192,7 @@ classdef LoadPull < handle
 		
 			% Naming system is case-insensitive and does
 			% not regard underscores. 'comp_' is not used.
+			name_orig = name;
 			name = upper(name);
 			name = strrep(name, "_", "");
 			
@@ -222,11 +226,11 @@ classdef LoadPull < handle
 				val = obj.comp_ZL;
 			elseif name == "DRAINEFF"
 				val = obj.comp_DrainEff;
-			elseif contains(name, "props.")
+			elseif contains(name, "PROPS.")
 				
 				% Get field name
-				name = char(name);
-				name = name(6:end);
+				name = char(name_orig);
+				name = name(7:end);
 				
 				% Verify field exists
 				if ~isfield(obj.props, name)
@@ -236,7 +240,7 @@ classdef LoadPull < handle
 				end
 				
 				% Return field
-				val = obj.prop.(name);
+				val = obj.props.(name);
 			else
 				warning("Failed to find property '" + name + "'");
 				val = NaN;
@@ -319,6 +323,7 @@ classdef LoadPull < handle
 			
 			% Find sort regions
 			deltas = diff(array);
+			deltas(end+1) = 1; % Add a 'end of match region' symbol to take care of any matched regions aligned with end
 
 			sort_regions = zeros(alloc_size, 2);
 			sz = alloc_size;
@@ -468,6 +473,23 @@ classdef LoadPull < handle
 					obj.props.(pname) = arr(I);
 				end
 				
+			end
+			
+		end
+		
+		
+		function showorg(obj)
+			
+			displ("Sort Info:");
+			idx = 0;
+			for si = obj.sort_info
+				displ("  [", idx, "] Layer: ", si.name);
+				displ("      Regions: ");
+				
+				[rows, ~] = size(si.regions);
+				for r = 1:rows
+					displ("               [", si.regions(r, 1), ", ", si.regions(r, 2), "]"); 
+				end
 			end
 			
 		end
