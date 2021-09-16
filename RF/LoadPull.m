@@ -269,6 +269,131 @@ classdef LoadPull < handle
 			
 		end %======================== END FILTER ==========================
 		
+		function idx_filt = listfilter(obj, idxs, varargin) %===================================
+			
+			% FIlter syntax:
+			% * "max" "min" are valid options, case insensitive
+			% * Otherwise numeric input expected. If single number, will
+			% look for exact match. If two numbers, will look for bound. 
+			% If two numbers are given, either one can be made NaN to
+			% indicate no limit, and thus greater than/less than. This will
+			% be inclusive bounds. 
+			% lp.filter("PAE", "max", "PLOAD", [.19, .21], "freq", 10e9);
+			
+			% Check if idxs provided, if not merge into varargin
+			if ~isnumeric(idxs)
+				varargin = {idxs, varargin{:}};
+				idxs = 1:obj.numpoints();
+			end
+			
+			% Check that correct number of arguments were given11
+			if mod(numel(varargin), 2) ~= 0
+				warning("LoadPull.filter() Requires an even number of arguments.");
+				return;
+			end
+			
+			% Check that inputs have correct length
+			len = -1;
+			for fi = 1:2:length(varargin)
+				
+				% Find size of input argument
+				[r, ~] = size(varargin{fi+1});
+				
+				% 1 row always okay
+				if r == 1
+					continue;
+				end
+				
+				if len == -1
+					len = r;
+				elseif len ~= r
+					warning("All input lists must have the same number of rows!");
+					return;
+				end
+			end
+			
+			all_idxs = [];
+			check_idxs = idxs;
+			for i=1:len
+				
+				% Make copy of input arguments with one row of data
+				args_in = varargin;
+				for fi = 2:2:length(varargin)
+					[r, ~] = size(varargin{fi});
+					if r ~= 1
+						args_in{fi} = args_in{fi}(i,:);
+					end
+				end
+				
+				% Filter row data
+				new_idxs = obj.filter(check_idxs, args_in{:});
+				
+				% Add to master list
+				all_idxs = [all_idxs, new_idxs];
+				
+			end
+			
+			% Return sorted master list
+			idx_filt = unique(sort(all_idxs));
+			
+% 			% Scan through filter list and parse commands
+% 			demostruct.name = "";
+% 			demostruct.operation = "";
+% 			demostruct.value = [];
+% 			commands_ns = repmat(demostruct, 1, numel(varargin)/2);
+% 			pop_idx = 1;
+% 			for fi = 1:2:length(varargin)
+% 				com = {};
+% 				com.name = varargin{fi};
+% 				
+% 				v = varargin{fi+1};
+% 				if isnumeric(v)
+% 					if length(v) == 1
+% 						com.operation = "EQUAL";
+% 						com.value = v;
+% 					elseif isnan(v(1)) && ~isnan(v(2))
+% 						com.operation = "LESS";
+% 						com.value = v(2);
+% 					elseif isnan(v(2)) && ~isnan(v(1))
+% 						com.operation = "GREATER";
+% 						com.value = v(1);
+% 					elseif ~isnan(v(1)) && ~isnan(v(2))
+% 						com.operation = "RANGE";
+% 						com.value = v;
+% 					end
+% 				elseif isa(v, 'string') || isa(v, 'char')
+% 					v = upper(v);
+% 					if strcmp(v, "MAX")
+% 						com.operation = "MAX";
+% 						com.value = [];
+% 					elseif strcmp(v, "MIN")
+% 						com.operation = "MIN";
+% 						com.value = [];
+% 					else
+% 						try
+% 							warning("Failed to recognize command: "+com.name+" = " + string(v));
+% 						catch
+% 							warning("Failed to recognize command: "+com.name+" = <Class: "+class(v) + ">");
+% 						end
+% 						continue;
+% 					end
+% 				else
+% 					try
+% 						warning("Failed to recognize command: "+com.name+" = " + string(v));
+% 					catch
+% 						warning("Failed to recognize command: "+com.name+" = <Class: "+class(v) + ">");
+% 					end
+% 					continue;
+% 				end
+% 				
+% 				% Add to command list
+% 				commands_ns(pop_idx) = com;
+% 				pop_idx = pop_idx+1;
+% 				
+% 			end
+			
+		end
+		
 		function organize(obj, varargin) %=================================
 		% ORGANIZE Organizes the data such that searching is faster
 		%
@@ -329,9 +454,52 @@ classdef LoadPull < handle
 		% 2. Sort_info structs (in array)
 		%	I. Sort parameter name (s.name)
 		%   II. Sort regions for parameter (s.regions)
-			
+		
 		end %======================== END ORGANIZE ========================
 
+		function lp = get(obj, idxs, varargin)
+			
+			lp = LoadPull;
+			
+			if ~isempty(obj.freq)
+				lp.freq = obj.freq(idxs);
+			end
+			if ~isempty(obj.Z0)
+				lp.Z0 = obj.Z0;
+			end
+			if ~isempty(obj.a1)
+				lp.a1 = obj.a1(idxs);
+			end
+			if ~isempty(obj.b1)
+				lp.b1 = obj.b1(idxs);
+			end
+			if ~isempty(obj.a2)
+				lp.a2 = obj.a2(idxs);
+			end
+			if ~isempty(obj.b2)
+				lp.b2 = obj.b2(idxs);
+			end
+			if ~isempty(obj.V1_DC)
+				lp.V1_DC = obj.V1_DC(idxs);
+			end
+			if ~isempty(obj.I1_DC)
+				lp.I1_DC = obj.I1_DC(idxs);
+			end
+			if ~isempty(obj.V2_DC)
+				lp.V2_DC = obj.V2_DC(idxs);
+			end
+			if ~isempty(obj.I2_DC)
+				lp.I2_DC = obj.I2_DC(idxs);
+			end
+			flds = ccell2mat(fields(obj.props));
+			for f = flds
+				lp.props.(f) = obj.props.(f)(idxs);
+			end
+			
+% 			lp.sort_info = obj.sort_info;
+			
+		end
+		
 		function val = getArrayFromName(obj, name)
 		% GETARRAYFROMNAME Returns the value of an internal array by its
 		% string name.
