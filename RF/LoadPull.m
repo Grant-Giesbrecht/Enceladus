@@ -190,24 +190,27 @@ classdef LoadPull < handle
 			% Re-order the filter commands so they give top-level sorted
 			% parameter precedence over non-sorted or lower-level sorted
 			% parameters.
-			Is = zeros(1, length(commands_ns));
-			sort_names = upper([obj.sort_info(2:end).name]);
-			count = 1;
-			for fc = commands_ns % Loop over all filter commands
-				
-				% Check if parameter was sorted
-				if any(upper(fc.name) == sort_names)
-					Is(count) = find(upper(fc.name) == sort_names);
-				else
-					Is(count) = inf;
-				end
-				
-				% Increment counter
-				count = count + 1;
-			end
-			[~, I_filt] = sort(Is); % Determine precedence of filter commands
-			commands = commands_ns(I_filt); % Rearrange filter commands
+			if length(obj.sort_info) > 1 % Only sort if object was organized
+				Is = zeros(1, length(commands_ns));
+				sort_names = upper([obj.sort_info(2:end).name]);
+				count = 1;
+				for fc = commands_ns % Loop over all filter commands
 
+					% Check if parameter was sorted
+					if any(upper(fc.name) == sort_names)
+						Is(count) = find(upper(fc.name) == sort_names);
+					else
+						Is(count) = inf;
+					end
+
+					% Increment counter
+					count = count + 1;
+				end
+				[~, I_filt] = sort(Is); % Determine precedence of filter commands
+				commands = commands_ns(I_filt); % Rearrange filter commands
+			else % Else keep as-is
+				commands = commands_ns;
+			end
 			% Note: returns indecies (and can accept indecies as an
 			% optional parameter). To get a LoadPull object feed indecies
 			% into LoadPull.getLP() function.
@@ -1019,7 +1022,7 @@ classdef LoadPull < handle
 			name = upper(name);
 			
 			% If name is not in list of all tracked variables, quit
-			if ~any(name == obj.current_tracked)
+			if ~any(name == obj.tracked)
 				warning("Invalid tracking name.");
 				return;
 			end
