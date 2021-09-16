@@ -194,11 +194,15 @@ classdef LoadPull < handle
 			if length(obj.sort_info) > 1 % Only sort if object was organized
 				Is = zeros(1, length(commands_ns));
 				sort_names = upper([obj.sort_info(2:end).name]);
-				count = 1;
+				count = 0;
 				for fc = commands_ns % Loop over all filter commands
 
+					% Increment counter
+					count = count + 1;
+					
 					if strcmp(fc.operation, "MAX") || strcmp(fc.operation, "MIN")
-						
+						Is(count) = inf;
+						continue;
 					end
 					
 					% Check if parameter was sorted
@@ -207,14 +211,27 @@ classdef LoadPull < handle
 					else
 						Is(count) = inf;
 					end
-
-					% Increment counter
-					count = count + 1;
 				end
 				[~, I_filt] = sort(Is); % Determine precedence of filter commands
 				commands = commands_ns(I_filt); % Rearrange filter commands
 			else % Else keep as-is
-				commands = commands_ns;
+				
+				Is = zeros(1, length(commands_ns));
+				count = 0;
+				for fc = commands_ns % Loop over all filter commands
+					
+					% Increment counter
+					count = count  + 1;
+					
+					if strcmp(fc.operation, "MAX") || strcmp(fc.operation, "MIN")
+						Is(count) = inf;
+					else
+						Is(count) = 1;
+					end
+				end
+				
+				[~, I_filt] = sort(Is); % Determine precedence of filter commands
+				commands = commands_ns(I_filt); % Rearrange filter commands
 			end
 			% Note: returns indecies (and can accept indecies as an
 			% optional parameter). To get a LoadPull object feed indecies
@@ -995,7 +1012,7 @@ classdef LoadPull < handle
 		function v = gain(obj)
 			
 			if ~obj.isCurrent("GAIN")
-				obj.comp_gain = lin2dB(obj.p_load()./p_in());
+				obj.comp_gain = lin2dB(obj.p_load()./obj.p_in());
 				obj.setCurrent("GAIN");
 			end
 			
