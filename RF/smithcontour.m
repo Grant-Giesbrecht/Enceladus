@@ -1,5 +1,7 @@
 function  smithcontour(rg, ig, val, Z0)
 	
+	warning("This function, smithcontour(), is deprecated. Use contoursc() instead.");
+
 	%Check for optional Z0
 	if ~exist('Z0', 'var')
 		Z0 = 50;
