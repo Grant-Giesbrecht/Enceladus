@@ -530,7 +530,7 @@ classdef LoadPull < handle
 			elseif name == "V2DC"
 				val = obj.V2_DC;
 			elseif name == "PLOAD"
-				val = obj.pload();
+				val = obj.p_load();
 			elseif name == "PAE"
 				val = obj.pae();
 			elseif name == "GAMMA"
