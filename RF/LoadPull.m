@@ -141,6 +141,12 @@ classdef LoadPull < handle
 				
 				v = varargin{fi+1};
 				if isnumeric(v)
+					
+					[r, ~] = size(v);
+					if r > 1
+						warning("Value for filter paramter '" + com.name + "' has multiple rows. To filter using list targets, use listfilter().");
+					end
+					
 					if length(v) == 1
 						com.operation = "EQUAL";
 						com.value = v;
