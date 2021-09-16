@@ -24,7 +24,7 @@ function ndrawn = drawsccircles(fill, scheme)
 		col_Rcirc = [1, .6706, .2431]; % Orange
 		col_Cline = col_Rcirc;
 		col_Xcirc = col_Rcirc;
-		col_Outcirc = col_Rcirc
+		col_Outcirc = col_Rcirc;
 	else
 		col_Xcirc = [.5, .5, .7];
 		col_Cline = [.5, .5, .5];
