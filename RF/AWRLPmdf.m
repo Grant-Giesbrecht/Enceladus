@@ -1025,7 +1025,8 @@ classdef AWRLPmdf < handle
 				
 				% If characteristic impedance, save to dedicated array
 				if contains(g.name, "Z0")
-					lp.Z0 = zeros(1, len) + g.data(1,1) + sqrt(-1)*g.data(1, 2);
+% 					lp.Z0 = zeros(1, len) + g.data(1,1) + sqrt(-1)*g.data(1, 2);
+					lp.Z0 = g.data(1,1) + sqrt(-1)*g.data(1, 2);
 					continue;
 				end
 
