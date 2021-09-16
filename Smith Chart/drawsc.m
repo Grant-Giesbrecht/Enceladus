@@ -5,10 +5,10 @@ function ndrawn = drawsc(AH, scheme)
 	end
 	
 	if strcmp(scheme,'Light')
-		background_color = [240, 240, 240]./255
+		background_color = [240, 240, 240]./255;
 		legend_color = [1,1,1];
 	else
-		background_color = [240, 240, 240]./255
+		background_color = [240, 240, 240]./255;
 		legend_color = [.6, .6, .6];
 	end
 
