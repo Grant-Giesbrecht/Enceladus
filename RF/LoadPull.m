@@ -83,7 +83,7 @@ classdef LoadPull < handle
 			obj.current = "";
 			obj.current(1) = [];
 			
-			obj.tracked = ["GAMMA", "P_LOAD", "Z_L", "PAE", "P_IN", "P_DC", "DRAIN_EFF"]; %List of all values tracked for currency. Same as function names but capitolized
+			obj.tracked = ["GAMMA", "P_LOAD", "Z_L", "PAE", "P_IN", "P_DC", "DRAIN_EFF", "GAIN"]; %List of all values tracked for currency. Same as function names but capitolized
 			
 			% 'dependencies' is a struct. The field name indicates a
 			% tracked value, the value is a list of other tracked values
@@ -93,6 +93,7 @@ classdef LoadPull < handle
 			obj.dependencies.GAMMA = ["Z_L"];
 			obj.dependencies.PAE = ["P_IN", "P_LOAD", "P_DC"];
 			obj.dependencies.DRAINEFF = ["P_LOAD", "P_DC"];
+			obj.dependencies.GAIN = ["P_IN", "P_LOAD"];
 			
 			unsorted = {};
 			unsorted.name = "base";
@@ -189,13 +190,17 @@ classdef LoadPull < handle
 			
 			% Re-order the filter commands so they give top-level sorted
 			% parameter precedence over non-sorted or lower-level sorted
-			% parameters.
+			% parameters. Also all max and min commands must go to end
 			if length(obj.sort_info) > 1 % Only sort if object was organized
 				Is = zeros(1, length(commands_ns));
 				sort_names = upper([obj.sort_info(2:end).name]);
 				count = 1;
 				for fc = commands_ns % Loop over all filter commands
 
+					if strcmp(fc.operation, "MAX") || strcmp(fc.operation, "MIN")
+						
+					end
+					
 					% Check if parameter was sorted
 					if any(upper(fc.name) == sort_names)
 						Is(count) = find(upper(fc.name) == sort_names);
@@ -986,6 +991,18 @@ classdef LoadPull < handle
 			v = obj.comp_PAE;
 			
 		end %========================== END PAE ===========================
+		
+		function v = gain(obj)
+			
+			if ~obj.isCurrent("GAIN")
+				obj.comp_gain = lin2dB(obj.p_load()./p_in());
+				obj.setCurrent("GAIN");
+			end
+			
+			% Return value
+			v = obj.comp_gain;
+			
+		end
 		
 		function v = drain_eff(obj) %=======================================
 			
