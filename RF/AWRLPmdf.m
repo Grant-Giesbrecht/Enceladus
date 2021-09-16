@@ -844,7 +844,7 @@ classdef AWRLPmdf < handle
 		
 		function lpd = getLPData(obj)
 			 
-			warning("This function is deprecated. 'getLPSweep()' should be used instead.");
+			warning("This function, getLPData(), is deprecated. 'getLPSweep()' should be used instead.");
 			
 			lpd = LPData;
 
