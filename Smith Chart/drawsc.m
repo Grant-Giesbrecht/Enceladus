@@ -55,6 +55,9 @@ function ndrawn = drawsc(AH, scheme)
 	daspect([1, 1, 1])
 	pbaspect([2, 1, 1])
 	
+	% Ensure grid is off
+	grid off
+	
 	% Reset color order
 	set(AH, 'ColorOrderIndex', 1);
 	
