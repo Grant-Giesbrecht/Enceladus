@@ -31,7 +31,7 @@ classdef LoadPull < handle
 		comp_Pin
 		comp_ZL
 		comp_DrainEff
-		comp_gain
+		comp_Gain
 		
 		dependencies
 		current
@@ -76,7 +76,7 @@ classdef LoadPull < handle
 			obj.comp_Pin = [];
 			obj.comp_ZL = [];
 			obj.comp_DrainEff = [];
-			obj.comp_gain = [];
+			obj.comp_Gain = [];
 			
 			% Create 'current' as an empty list of strings.
 			% 'current' is a list of all tracked values with values that
@@ -297,6 +297,27 @@ classdef LoadPull < handle
 		
 		function idx_filt = listfilter(obj, idxs, varargin) %===================================
 			
+			expectedDomain = {'Z', 'G'};
+			expectedSchemes = {'Light', 'Dark'};
+
+			p = inputParser;
+			p.KeepUnmatched = true;
+			p.addParameter('Sort', false, @islogical );
+			try
+				p.parse(varargin{:});
+				do_sort = p.Results.Sort;
+				
+				% Get plot arguments
+				tmp = [fieldnames(p.Unmatched),struct2cell(p.Unmatched)];
+				varargin_rem = reshape(tmp',[],1)';
+			catch
+				do_sort = false;
+				varargin_rem = varargin;
+			end
+			
+			
+			
+			
 			% FIlter syntax:
 			% * "max" "min" are valid options, case insensitive
 			% * Otherwise numeric input expected. If single number, will
@@ -306,24 +327,24 @@ classdef LoadPull < handle
 			% be inclusive bounds. 
 			% lp.filter("PAE", "max", "PLOAD", [.19, .21], "freq", 10e9);
 			
-			% Check if idxs provided, if not merge into varargin
+			% Check if idxs provided, if not merge into varargin_rem
 			if ~isnumeric(idxs)
-				varargin = {idxs, varargin{:}};
+				varargin_rem = {idxs, varargin_rem{:}};
 				idxs = 1:obj.numpoints();
 			end
 			
 			% Check that correct number of arguments were given11
-			if mod(numel(varargin), 2) ~= 0
+			if mod(numel(varargin_rem), 2) ~= 0
 				warning("LoadPull.filter() Requires an even number of arguments.");
 				return;
 			end
 			
 			% Check that inputs have correct length
 			len = -1;
-			for fi = 1:2:length(varargin)
+			for fi = 1:2:length(varargin_rem)
 				
 				% Find size of input argument
-				[r, ~] = size(varargin{fi+1});
+				[r, ~] = size(varargin_rem{fi+1});
 				
 				% 1 row always okay
 				if r == 1
@@ -343,9 +364,9 @@ classdef LoadPull < handle
 			for i=1:len
 				
 				% Make copy of input arguments with one row of data
-				args_in = varargin;
-				for fi = 2:2:length(varargin)
-					[r, ~] = size(varargin{fi});
+				args_in = varargin_rem;
+				for fi = 2:2:length(varargin_rem)
+					[r, ~] = size(varargin_rem{fi});
 					if r ~= 1
 						args_in{fi} = args_in{fi}(i,:);
 					end
@@ -360,7 +381,11 @@ classdef LoadPull < handle
 			end
 			
 			% Return sorted master list
-			idx_filt = unique(sort(all_idxs));
+			if do_sort
+				idx_filt = unique(sort(all_idxs));
+			else
+				idx_filt = unique(all_idxs);
+			end
 			
 % 			% Scan through filter list and parse commands
 % 			demostruct.name = "";
@@ -1013,12 +1038,12 @@ classdef LoadPull < handle
 		function v = gain(obj)
 			
 			if ~obj.isCurrent("GAIN")
-				obj.comp_gain = lin2dB(obj.p_load()./obj.p_in());
+				obj.comp_Gain = lin2dB(obj.p_load()./obj.p_in());
 				obj.setCurrent("GAIN");
 			end
 			
 			% Return value
-			v = obj.comp_gain;
+			v = obj.comp_Gain;
 			
 		end
 		
