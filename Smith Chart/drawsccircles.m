@@ -20,6 +20,7 @@ function ndrawn = drawsccircles(fill, scheme)
 	% Change to alternative colors
 	if strcmp(scheme, 'Dark')
 		circ_fill_color = [.3176, .3608, .4196]; %Window title bar grey
+		circ_fill_color = [100, 100, 100]./255; %Window title bar grey
 		col_Rcirc = [1, .6706, .2431]; % Orange
 		col_Cline = col_Rcirc;
 		col_Xcirc = col_Rcirc;
