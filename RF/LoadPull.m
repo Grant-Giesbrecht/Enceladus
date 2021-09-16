@@ -31,6 +31,7 @@ classdef LoadPull < handle
 		comp_Pin
 		comp_ZL
 		comp_DrainEff
+		comp_gain
 		
 		dependencies
 		current
@@ -75,7 +76,7 @@ classdef LoadPull < handle
 			obj.comp_Pin = [];
 			obj.comp_ZL = [];
 			obj.comp_DrainEff = [];
-			
+			obj.comp_gain = [];
 			
 			% Create 'current' as an empty list of strings.
 			% 'current' is a list of all tracked values with values that
