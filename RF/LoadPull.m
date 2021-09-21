@@ -107,7 +107,60 @@ classdef LoadPull < handle
 		%==================================================================
 		
 		function idx_filt = filter(obj, idxs, varargin) %===================================
-			
+		% FILTER Filters points based on a set of rules
+		%
+		% Filters the points in the LoadPull class based on a set of filter
+		% commands. 
+		%
+		%	IDX_FILT = FILTER(..., Name, Value) Filters all points in the
+		%	LoadPull class based on the filter commands formulated by the
+		%	Name Value pairs. Returns the indecies of the matching points.
+		%
+		%	IDX_FILT = FILTER(IDXS, ..., Name, Value) Filters the data 
+		%	points in the LoadPull class specified by IDXS, based on filter
+		%	commands forumulated by the Name Value pairs. Returns the
+		%	indecies of the matching points. 
+		%
+		%	====================== Parameter Naming =====================
+		%	To filter the LoadPull object, the user must specify which
+		%	paramter to filter. A valid parameter name is the name of any
+		%	base parameter (such as Z0, a1, b1, V1_DC, etc.), any derived
+		%	parameter (such as PAE, P_in, gamma, etc), or a field in the
+		%	property struct. To specify fields in the property struct, the
+		%	field name must be preceeded with "props.". The naming is not 
+		%	case sensitive and ignores underscores.
+		%	
+		%	========================= Filter Values =======================
+		%	Filter values describe what value a parameter must have in 
+		%	order to meet the filter condition. Filter values can be:
+		%		
+		%		EXACT MATCH: Specified as a scalar value
+		%		RANGE: Specified as a 1x2 vector of [MIN, MAX], inclusive.
+		%		
+		%		GREATER/LESS THAN: Specified as a 1x2 vector of [MIN, MAX],
+		%		with the unbounded side specified as NaN.
+		%		
+		%		MAX/MIN: Returns the points with the highest or lowest
+		%		values. Specify a max or min filter values with the strings
+		%		"MAX" or "MIN".
+		%
+		%	===================== Name, Value Pairs =====================
+		%
+		%	NAME: MinMaxCount
+		%	VALUE: Valid values include any positive integer. Specifies how
+		%	many values to consider valid when filtering the max/min
+		%	points. For example, a filter 'max' with a MinMaxCount of 3
+		%	takes the top three values present and returns all indecies
+		%	pointing to those values. More than three indecies can be
+		%	returned if duplicate values of one of the max values exist.
+		%	DEFUALT: 1
+		%	
+		%	NAME: <Parameter>
+		%	VALUE: Value to filter for parameter. See Filter values and
+		%	parameter naming above for syntax rules.
+		%
+		% See also: listfilter()
+
 			% FIlter syntax:
 			% * "max" "min" are valid options, case insensitive
 			% * Otherwise numeric input expected. If single number, will
@@ -315,7 +368,11 @@ classdef LoadPull < handle
 			
 		end %======================== END FILTER ==========================
 		
-		function idx_filt = listfilter(obj, idxs, varargin) %===================================
+		function idx_filt = listfilter(obj, idxs, varargin) %==============
+		% LISTFILTER Filters parameters to match a list of changing values
+		%
+		% 
+		
 			
 			expectedDomain = {'Z', 'G'};
 			expectedSchemes = {'Light', 'Dark'};
