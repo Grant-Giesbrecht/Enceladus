@@ -123,8 +123,20 @@ classdef LoadPull < handle
 				idxs = 1:obj.numpoints();
 			end
 			
+			% Create input parser
+			p = inputParser;
+			p.KeepUnmatched=true;
+			p.addParameter('MinMaxCount', 1, @(x) isnumeric(x) && (x >= 1));
+			p.parse(varargin{:});
+			
+			% Get remaining arguments
+			tmp = [fieldnames(p.Unmatched),struct2cell(p.Unmatched)];
+			plotArgs = reshape(tmp',[],1)'; 
+			
+			maxmin_count = ceil(p.Results.MinMaxCount);
+			
 			% Check that correct number of arguments were given11
-			if mod(numel(varargin), 2) ~= 0
+			if mod(numel(plotArgs), 2) ~= 0
 				warning("LoadPull.filter() Requires an even number of arguments.");
 				return;
 			end
@@ -133,13 +145,15 @@ classdef LoadPull < handle
 			demostruct.name = "";
 			demostruct.operation = "";
 			demostruct.value = [];
-			commands_ns = repmat(demostruct, 1, numel(varargin)/2);
+			demostruct.mmcount = 1;
+			commands_ns = repmat(demostruct, 1, numel(plotArgs)/2);
 			pop_idx = 1;
-			for fi = 1:2:length(varargin)
+			for fi = 1:2:length(plotArgs)
 				com = {};
-				com.name = varargin{fi};
+				com.name = plotArgs{fi};
+				com.mmcount = maxmin_count;
 				
-				v = varargin{fi+1};
+				v = plotArgs{fi+1};
 				if isnumeric(v)
 					
 					[r, ~] = size(v);
@@ -888,11 +902,29 @@ classdef LoadPull < handle
 			array = array(filt_idxs);
 			
 			if strcmp(cmd.operation, "MAX")
-				maxval = max(array);
-				match_idx = (array == maxval);
+				
+				% Make copy of array for eliminating values without
+				% affecting indecies
+				max_array = array;
+				
+				% Create array of all 'false'
+				match_idx = boolean(zeros(1, length(array)));
+				
+				% For each 'max', find next highest point
+				for mv = 1:cmd.mmcount
+					maxval = max(max_array); % Find max
+					match_idx = match_idx | (array == maxval); % Save where max occurs
+					max_array(max_array == maxval) = []; % Remove maxes from list
+				end
 			elseif strcmp(cmd.operation, "MIN")
-				minval = min(array);
-				match_idx = (array == minval);
+				match_idx = [];
+				for mv = 1:cmd.mmcount
+					minval = min(array);
+					match_idx = [match_idx, (array == minval)];
+					if ~isempty(match_idx)
+						array(find(match_idx)) = [];
+					end
+				end
 			elseif strcmp(cmd.operation, "EQUAL")
 				match_idx = (array == cmd.value);
 			elseif strcmp(cmd.operation, "GREATER")
