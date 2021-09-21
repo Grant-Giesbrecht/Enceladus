@@ -176,17 +176,9 @@ classdef LoadPull < handle
 				idxs = 1:obj.numpoints();
 			end
 			
-			% Create input parser
-			p = inputParser;
-			p.KeepUnmatched=true;
-			p.addParameter('MinMaxCount', 1, @(x) isnumeric(x) && (x >= 1));
-			p.parse(varargin{:});
 			
-			% Get remaining arguments
-			tmp = [fieldnames(p.Unmatched),struct2cell(p.Unmatched)];
-			plotArgs = reshape(tmp',[],1)'; 
-			
-			maxmin_count = ceil(p.Results.MinMaxCount);
+			plotArgs = varargin;
+			maxmin_count = 1;
 			
 			% Check that correct number of arguments were given11
 			if mod(numel(plotArgs), 2) ~= 0
@@ -195,16 +187,23 @@ classdef LoadPull < handle
 			end
 			
 			% Scan through filter list and parse commands
-			demostruct.name = "";
-			demostruct.operation = "";
-			demostruct.value = [];
-			demostruct.mmcount = 1;
-			commands_ns = repmat(demostruct, 1, numel(plotArgs)/2);
+			commands_ns.name = "";
+			commands_ns.operation = "";
+			commands_ns.value = [];
+			commands_ns.mmcount = 1;
+			commands_ns(1) = [];
 			pop_idx = 1;
 			for fi = 1:2:length(plotArgs)
+				
+				% Handle MinMaxArg 
+				if strcmp(plotArgs{fi}, 'MinMaxCount')
+					maxmin_count = plotArgs{fi+1};
+					continue;
+				end
+				
 				com = {};
 				com.name = plotArgs{fi};
-				com.mmcount = maxmin_count;
+				com.mmcount = -1;
 				
 				v = plotArgs{fi+1};
 				if isnumeric(v)
@@ -253,7 +252,7 @@ classdef LoadPull < handle
 				end
 				
 				% Add to command list
-				commands_ns(pop_idx) = com;
+				commands_ns(end+1) = com;
 				pop_idx = pop_idx+1;
 				
 			end
@@ -313,6 +312,9 @@ classdef LoadPull < handle
 			
 			% For each filter command
 			for cmd = commands
+				
+				% Update mmcount
+				cmd.mmcount = maxmin_count;
 			
 				%TODO: Remove this! filterLienar and continue are used as a
 				%simple test.
@@ -417,18 +419,24 @@ classdef LoadPull < handle
 			end
 			
 			% Check that inputs have correct length
-			len = -1;
+			len = 1;
+			showed_warning = false;
 			for fi = 1:2:length(varargin_rem)
 				
 				% Find size of input argument
-				[r, ~] = size(varargin_rem{fi+1});
+				[r, c] = size(varargin_rem{fi+1});
+				
+				% Show warning for possibly incorrectly oriented inputs
+				if c > 2 && ~showed_warning
+					warning("listfilter received argument with more than two columns. Perhaps you meant to transpose the input vector?");
+				end
 				
 				% 1 row always okay
 				if r == 1
 					continue;
 				end
 				
-				if len == -1
+				if len == 1
 					len = r;
 				elseif len ~= r
 					warning("All input lists must have the same number of rows!");
@@ -918,6 +926,48 @@ classdef LoadPull < handle
 					arr = obj.props.(pname);
 					obj.props.(pname) = arr(I);
 				end
+				
+			end
+			
+		end
+		
+		function [vals, stdevs] = average(obj, idxs, avg_prop, varargin)
+			
+			% Check for optional argument idxs
+			if ~isnumeric(idxs)
+				varargin = {avg_prop, varargin{:}};
+				avg_prop = idxs;
+				idxs = 1:obj.numpoints();
+			end
+			
+			% Initialize arrays
+			[pts, ~] = size(varargin{2});
+			vals = zeros(1, pts);
+			stdevs = zeros(1, pts);
+			
+			% Get average/stdev for each point
+			for idx = 1:pts
+				
+				% Get filter arguments for this point
+				args = varargin;
+				for vi = 2:2:numel(varargin)
+					
+					% Check if multiple rows of arguments given
+					[rs, ~] = size(args{vi});
+					if rs > 1
+						args{vi} = args{vi}(idx, :); % Trim values to one row
+					end
+				end
+				
+				% Get indecies
+				pt_idxs = obj.filter(idxs, args{:});
+				
+				% Get data to average
+				data = obj.getArrayFromName(avg_prop);
+				
+				% Compute values
+				vals(idx) = mean(data(pt_idxs));
+				stdevs(idx) = std(data(pt_idxs));
 				
 			end
 			
