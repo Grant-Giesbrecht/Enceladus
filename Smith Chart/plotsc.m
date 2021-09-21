@@ -12,6 +12,7 @@ function ph = plotsc(data, varargin)
 	p.addParameter('Colormap', [], @isnumeric);
 	p.addParameter('Scatter', false, @islogical);
 	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
+	p.addParameter('MSizes', [], @(x) true );
 
     p.parse(varargin{:});
 	
@@ -47,7 +48,7 @@ function ph = plotsc(data, varargin)
 	
 	% Plot results
 	if p.Results.Scatter
-		ph = scatter(ax, x, y, plotArgs{:});
+		ph = scatter(ax, x, y, p.Results.MSizes, plotArgs{:});
 	else
 		ph = plot(ax, x,y, plotArgs{:});
 	end
@@ -62,7 +63,7 @@ function ph = plotsc(data, varargin)
 		end
 		
 		c = getColorData(p.Results.ColorVar, cmap);
-		ph = scatter(ax, x, y, [], c, 'Marker', '+');
+		ph = scatter(ax, x, y, p.Results.MSizes, c, 'Marker', '+');
 	end
 
 	% Set datatip to custom format
