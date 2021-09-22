@@ -13,6 +13,7 @@ function surfsc(gamma, val, varargin)
 % 	p.addParameter('Scatter', false, @islogical);
 	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
 % 	p.addParameter('MSizes', [], @(x) true );
+	p.addParameter('ZLabel', [], @(x) isstring(x) || ischar(x));
 
     p.parse(varargin{:});
 	
@@ -45,8 +46,15 @@ function surfsc(gamma, val, varargin)
 	% Interpolate the data in 'val' over the new grid
 	V = griddata(re_gamma, im_gamma, val, R, I);
 
-	surf(R, I, V);
+	ph = surf(R, I, V);
 
 	daspect([1, 1, max(val)]);
+	
+	% Set datatip to custom format
+	if ~isempty(p.Results.ZLabel)
+		formatdatatipsc3d(ph, p.Results.Z0, p.Results.ZLabel);
+	else
+		formatdatatipsc3d(ph, p.Results.Z0);
+	end
 	
 end
