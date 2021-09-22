@@ -2,6 +2,14 @@ function contoursc(gamma, val, varargin)
 % CONTOURSC Plot smith chart contours
 %
 
+	expectedSchemes = {'Light', 'Dark'};
+
+	p = inputParser;
+    p.KeepUnmatched = true;
+	p.addParameter('ContourLabel', "Z", @(x) isstring(x) || ischar(x) );
+	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
+	p.parse(varargin{:});
+
 	num_real = 100;
 	num_imag = 100;
 
@@ -33,9 +41,12 @@ function contoursc(gamma, val, varargin)
 		% Create gamma points from struct 'arr'
 		g = arr.x + arr.y.*sqrt(-1);
 		
-		plotsc(g, 'Color', contour_color, 'Marker', 'None', 'LineStyle', '-');
-		hold on
+		plotsc(g, 'Color', contour_color, 'Marker', 'None', 'LineStyle', '-', 'ContourValue', arr.level, 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);
+% 		hold on
 	end
 	
+	if ~isempty(p.Results.ContourLabel)
+		zlabel(p.Results.ContourLabel)
+	end
 	
 end
