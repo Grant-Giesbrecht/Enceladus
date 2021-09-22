@@ -1,5 +1,9 @@
 function ph = plotsc(data, varargin)
 
+	if isnan(data)
+		return
+	end
+
 	expectedDomain = {'Z', 'G'};
 	expectedSchemes = {'Light', 'Dark'};
 
@@ -13,6 +17,8 @@ function ph = plotsc(data, varargin)
 	p.addParameter('Scatter', false, @islogical);
 	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
 	p.addParameter('MSizes', [], @(x) true );
+	p.addParameter('ContourValue', [], @isnumeric );
+	p.addParameter('ContourLabel', [], @(x) isstring(x) || ischar(x) );
 
     p.parse(varargin{:});
 	
@@ -67,6 +73,10 @@ function ph = plotsc(data, varargin)
 	end
 
 	% Set datatip to custom format
-	formatdatatipsc(ph, p.Results.Z0);
+	if isempty(p.Results.ContourValue) || isempty(p.Results.ContourLabel)
+		formatdatatipsc(ph, p.Results.Z0);
+	else
+		formatdatatipsc2(ph, p.Results.Z0, p.Results.ContourLabel, p.Results.ContourValue);
+	end
 	
 end
