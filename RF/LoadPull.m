@@ -1015,7 +1015,7 @@ classdef LoadPull < handle
 				max_array = array;
 				
 				% Create array of all 'false'
-				match_idx = boolean(zeros(1, length(array)));
+				match_idx = num2logical(zeros(1, length(array)));
 				
 				% For each 'max', find next highest point
 				for mv = 1:cmd.mmcount
