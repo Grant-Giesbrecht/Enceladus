@@ -1,4 +1,4 @@
-function mountainplot2_gui(lp_data, param1, param2, figno, varargin)
+function contourplot2_gui(lp_data, param1, param2, figno, varargin)
 
 	% SIMPLE_GUI2 Select a data set from the pop-up menu, then
 	% click one of the plot-type push buttons. Clicking the button
@@ -16,6 +16,8 @@ function mountainplot2_gui(lp_data, param1, param2, figno, varargin)
 	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
 	p.addParameter('Color1', [0, 0, .8], @isnumeric );
 	p.addParameter('Color2', [.8, 0, 0], @isnumeric );
+	p.addParameter('LegendLocation', "SouthEast", @(x) true );
+	p.addParameter("ShowLegend", true, @islogical);
 	p.parse(varargin{:});
 	
 	%  Create and then hide the UI as it is being constructed.
@@ -82,6 +84,9 @@ function mountainplot2_gui(lp_data, param1, param2, figno, varargin)
 	contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param1), 'ContourLabel', p.Results.ContourLabel1, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color1);
 	contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param2), 'ContourLabel', p.Results.ContourLabel2, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color2);
 	title(param1 + " & " + param2 + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
+	if p.Results.ShowLegend
+		legend(p.Results.ContourLabel1, p.Results.ContourLabel2, "Location", p.Results.LegendLocation);
+	end
 	
 	% Assign the a name to appear in the window title.
 	f.Name = 'Contour Plot GUI';
@@ -109,6 +114,9 @@ function mountainplot2_gui(lp_data, param1, param2, figno, varargin)
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param1), 'ContourLabel', p.Results.ContourLabel1, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color1);
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param2), 'ContourLabel', p.Results.ContourLabel2, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color2);
 		title(param1 + " & " + param2 + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
+		if p.Results.ShowLegend
+			legend(p.Results.ContourLabel1, p.Results.ContourLabel2, "Location", p.Results.LegendLocation);
+		end
 	end
    
 	function pwr_menu_callback(source,eventdata) 
@@ -124,6 +132,9 @@ function mountainplot2_gui(lp_data, param1, param2, figno, varargin)
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param1), 'ContourLabel', p.Results.ContourLabel1, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color1);
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param2), 'ContourLabel', p.Results.ContourLabel2, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color2);
 		title(param1 + " & " + param2 + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
+		if p.Results.ShowLegend
+			legend(p.Results.ContourLabel1, p.Results.ContourLabel2, "Location", p.Results.LegendLocation);
+		end
 	end
 
 end
