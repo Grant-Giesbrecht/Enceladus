@@ -28,6 +28,9 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	if isempty(p.Results.ID)
 		cf = char(filename);
 		sidx = find(cf == '/' | cf == '\', 1, 'Last');
+		if isempty(sidx)
+			sidx = 0;
+		end
 		pidx = find(cf == '.', 1, 'Last');
 		ID = cf(sidx+1:pidx-1);
 	else
