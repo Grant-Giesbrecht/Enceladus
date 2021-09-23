@@ -1,5 +1,5 @@
 % List of relative directories (relative to install.m's location)
-folders = ["general", "electronics", "RF", "import", "Tutorials", "Smith Chart"];
+folders = ["DDF", "ddfload_Data", "electronics", "general", "import",  "RF", "Tutorials", "Smith Chart", fullfile("MSTD", "CLI"), fullfile("MSTD", "plotting"), fullfile("MSTD", "search"), fullfile("MSTD", "string_manipulation"), fullfile("MSTD", "system")];
 
 % Find out where 'install.m' is saved
 file_path = mfilename('fullpath'); % Get full path to this file
@@ -15,13 +15,17 @@ local_dir = file_path(1:trim_idx-1);
 % cd to directory with 'install.m'
 cd(local_dir);
 
+startdir = pwd;
+
 % Add each listed subdirectory
 first = true;
 for fldr = folders
 
 	% If not first addition, move back to base directory
 	if ~first
-		cd ..
+		while ~strcmp(pwd, startdir)
+			cd ..
+		end
 	end
 	first = false;
 
