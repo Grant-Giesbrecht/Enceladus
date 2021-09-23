@@ -1,3 +1,7 @@
-*.asv
-.DS_Store
+*.DS_STORE
+cppkv_example
+cppkv_read_all_tests
 *.m~
+*.asv
+*__pycache__/*
+Python/__pycache__/

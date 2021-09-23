@@ -1,0 +1,45 @@
+#VERSION 2.0
+
+#HEADER
+This is an example file.
+#HEADER
+
+d pi 3.14159
+d epsilon0 8.85418782e-12 ? m^-3 kg^-1 s^4 A^2
+b foo TRUE
+s moon "Titan"
+s mars2020 "Perserverance Rover" ? Launched 30 July 2020
+
+m<d> fibonacci [0, 1, 1, 3, 5, 8]
+m<b> bar [True, False, False, True]
+m<s> moons ["Titan", "Europa", "Io", "Amalthea", "Callisto"]
+
+m<d> S_circulator [0, 0, 1 ; 1, 0, 0 ; 0, 1, 0]
+m<b> baz [false, True, false; true, False, false; true, true, FALSE]
+m<s> test3 ["Lorem ipsum", "dolor sit amet", "consectetur adipiscing elit."; "Ut", "nibh ipsum", "hendrerit"; "at condimentum", "in", "molestie nec mauris."]
+
+#VERTICAL
+m<d> m<s>
+mass_number Nuclide
+?amu ?Symbol, Name
+1  "H, Hydrogen"
+3  "He, Helium"
+6  "Li, Lithium"
+12 "C, Carbon"
+#VERTICAL
+
+#VERTICAL
+
+m<d> m<d>
+I   x
+1   1
+0   2
+0;
+0
+1
+0;
+0
+0
+1
+
+#VERTICAL

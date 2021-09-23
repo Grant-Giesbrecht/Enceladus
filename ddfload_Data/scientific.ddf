@@ -1,0 +1,54 @@
+#VERSION 2.0
+
+#HEADER
+Variables commonly used in the sciences. They have been grouped based on the
+fields with which they are most associated.
+
+Created: 1 May 2021
+Author: Grant Giesbrecht
+#HEADER
+
+//****************************************************************************//
+//***                          Physics Constants                           ***//
+//****************************************************************************//
+
+//- - - - - - - - - - - Electricity and Magnetism - - - - - - - - - - - - - - //
+
+d mu_0 1.25663706212e-6  ? [H/m] Vacuum permeability
+d eps_0 8.8541872e-12 ? [F/m] Permittivity of free space
+d c 299792458 ? [m/s] Speed of light in vacuum
+d K_J 483597.8484e9 ? Hz/V] Josephson constant
+
+// - - - - - - - - - - Particle and Quantum Physics - - - - - - - - - - - - - //
+
+d h 6.626070e-34 ? [J/Hz] Planck constant
+d h_bar 1.054571e-34 ? [J s] Reduced Planck constant
+d q_e 1.602176634e-19 ? [C] Elementary electric charge
+d alpha 7.2973525693e-3 ? [n.a.] Fine-structure constant
+d mu_B 9.2740100783e-24 ? [J/T] Bohr magneton
+
+d m_e 9.1093837015e-31 ? [kg] Electron rest mass
+d m_p 1.67262192369e-27 ? [kg] Proton mass
+d m_n 1.67492749804e-27 ? [kg] Neutron mass
+
+//- - - - - - - - - - - - - - - Mechanics - - - - - - - - - - - - - - - - - - //
+
+d G 6.67430e-11 ? [m^3 kg^-1 s^-2] Gravitational constant
+
+//- - - - - - - - - - - Thermal and Miscellaneous - - - - - - - - - - - - - - //
+d K_b 1.380649e-23 ? [J/K] Boltzmann constant
+
+
+//****************************************************************************//
+//***                         Chemistry Constants                          ***//
+//****************************************************************************//
+
+d N_A 6.02214076e23 ? [1/mol] Avagadro constant
+
+
+//****************************************************************************//
+//***                        Mathematics Constants                         ***//
+//****************************************************************************//
+
+d pi 3.1415926535 ? [n.a.] Number 'pi'
+d e 2.7182818245 ? [n.a.] Number 'e', or Euler's number
