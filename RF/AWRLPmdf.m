@@ -65,7 +65,7 @@ classdef AWRLPmdf < handle
 			%Open file
             fid = fopen(filename);
 			if fid == -1
-				obj.logErr(strcat('Failed to open file "', filename, '"'));
+				obj.msg = strcat('Failed to open file "', filename, '"');
 				return;
 			end
 
@@ -875,22 +875,13 @@ classdef AWRLPmdf < handle
 		
 		function lp = getLoadPull(obj, removeHarmonics)
 			
-			%TODO: Adding the ability to keep harmonics might be helpful
-			removeHarmonics = true;
+			% Handle optional arguments
+			if ~exist('removeHarmonics', 'var')
+				removeHarmonics = true;
+			end
 			
+			% Initialize LoadPull object
 			lp = LoadPull;
-			
-			% Initialize variables to save time
-			len = length(obj.bdata);
-			lp.a1 = zeros(1, len);
-			lp.b1 = zeros(1, len);
-			lp.a2 = zeros(1, len);
-			lp.b2 = zeros(1, len);
-			
-			lp.V1_DC = zeros(1, len);
-			lp.I1_DC = zeros(1, len);
-			lp.V2_DC = zeros(1, len);
-			lp.I2_DC = zeros(1, len);
 			
 			% Get indeces of a and b waves in the data block
 			a1idx = obj.bdataIndex("a1(3)");
@@ -903,12 +894,43 @@ classdef AWRLPmdf < handle
 			V2idx = obj.bdataIndex("V2(1)");
 			I2idx = obj.bdataIndex("I2(1)");
 			
+			% Determine length of object to create
+			moduloHarm = length(obj.bdata);
+			[nharm, ~] = size(obj.bdata{1}(a1idx).data); %Get number of harmonics
+			if ~removeHarmonics
+				len = moduloHarm*nharm;
+			else
+				len = moduloHarm;
+			end
+			
+			% If only 1 frequency present, automatically ignore harmonics
+			if nharm == 1
+				removeHarmonics = true;
+			end
+			
+			% Get harmonic numbers (if applicable)
+			if ~removeHarmonics
+				hi = obj.bdataIndex("harm(1)");
+				harmNo = flatten(obj.bdata{1}(hi).data);
+			end
+			
+			% Initialize variables to save time
+			lp.a1 = zeros(1, len);
+			lp.b1 = zeros(1, len);
+			lp.a2 = zeros(1, len);
+			lp.b2 = zeros(1, len);
+			
+			lp.V1_DC = zeros(1, len);
+			lp.I1_DC = zeros(1, len);
+			lp.V2_DC = zeros(1, len);
+			lp.I2_DC = zeros(1, len);
+			
 			% Pre-allocate variables from bdata
 			freq_in_bdata = false;
-			for bi = 1:numel(obj.bdata{1})		
+			for bi = 1:numel(obj.bdata{1})
 				% If index recognized as a1, a2, b1, b2, skip it
 				if any(bi == [a1idx, a2idx, b1idx, b2idx, V1idx, I1idx, V2idx, I2idx])
-					continue
+					continue;
 				end
 
 				lpvar = obj.bdata{1}(bi);
@@ -957,18 +979,20 @@ classdef AWRLPmdf < handle
 
 				% Construct complex values from real + imag, add to output arrays
 				if ~removeHarmonics
-					% Not fully implemented yet!
-					lp.a1(idx) = flatten(a1var.data(:, 1) + a1var.data(:, 2)*sqrt(-1));	
-					lp.b1(idx) = flatten(b1var.data(:, 1) + b1var.data(:, 2)*sqrt(-1));
-					lp.a2(idx) = flatten(a2var.data(:, 1) + a2var.data(:, 2)*sqrt(-1));
-					lp.b2(idx) = flatten(b2var.data(:, 1) + b2var.data(:, 2)*sqrt(-1));
 					
-% 					lp.V1_DC(idx) = flatten(V1var.data(:, 1) + V1var.data(:, 2)*sqrt(-1));	
-% 					lp.I1_DC(idx) = flatten(I1var.data(:, 1) + I1var.data(:, 2)*sqrt(-1));
-% 					lp.V2_DC(idx) = flatten(V2var.data(:, 1) + V2var.data(:, 2)*sqrt(-1));
-% 					lp.I2_DC(idx) = flatten(I2var.data(:, 1) + I2var.data(:, 2)*sqrt(-1));
+					% Add harmonics for 
+					for nh = 1:nharm
+						lp.a1(idx+moduloHarm*(nh-1)) = a1var.data(nh, 1) + a1var.data(nh, 2)*sqrt(-1);	
+						lp.b1(idx+moduloHarm*(nh-1)) = b1var.data(nh, 1) + b1var.data(nh, 2)*sqrt(-1);
+						lp.a2(idx+moduloHarm*(nh-1)) = a2var.data(nh, 1) + a2var.data(nh, 2)*sqrt(-1);
+						lp.b2(idx+moduloHarm*(nh-1)) = b2var.data(nh, 1) + b2var.data(nh, 2)*sqrt(-1);
+
+						lp.V1_DC(idx+moduloHarm*(nh-1)) = V1var.data(1, 1);	
+						lp.I1_DC(idx+moduloHarm*(nh-1)) = I1var.data(1, 1);
+						lp.V2_DC(idx+moduloHarm*(nh-1)) = V2var.data(1, 1);
+						lp.I2_DC(idx+moduloHarm*(nh-1)) = I2var.data(1, 1);
+					end
 				else
-					% Not fully implemented yet!
 					lp.a1(idx) = a1var.data(1, 1) + a1var.data(1, 2)*sqrt(-1);				
 					lp.b1(idx) = b1var.data(1, 1) + b1var.data(1, 2)*sqrt(-1);
 					lp.a2(idx) = a2var.data(1, 1) + a2var.data(1, 2)*sqrt(-1);
@@ -999,7 +1023,13 @@ classdef AWRLPmdf < handle
 					% Capture frequency in dedicated vector rather than
 					% 'props'
 					if contains(lpvar.name, "F1") || contains(upper(lpvar.name), "FREQ")
-						lp.freq(idx) = lpvar.data(1, 1);
+						if removeHarmonics
+							lp.freq(idx) = lpvar.data(1, 1);
+						else
+							for nh = 1:nharm
+								lp.freq(idx+moduloHarm*(nh-1)) = lpvar.data(1, 1)*harmNo(nh);
+							end
+						end
 					end
 					
 					% Else save to 'props'
@@ -1030,6 +1060,18 @@ classdef AWRLPmdf < handle
 					continue;
 				end
 
+				% Capture frequency in dedicated vector rather than
+				% 'props'
+				if contains(g.name, "F1") || contains(upper(g.name), "FREQ")
+					if removeHarmonics
+						lp.freq(1:moduloHarm) = g.data(1, 1);
+					else
+						for nh = 1:nharm
+							lp.freq(1+moduloHarm*(nh-1):moduloHarm*(nh)) = repmat(g.data(1, 1)*harmNo(nh), 1, moduloHarm);
+						end
+					end
+				end
+				
 				% Else save to props
 				if numel(g.data) == 1
 					lp.props.(AWRLPmdf.fieldName(g.name)) = zeros(1, len)+g.data;
