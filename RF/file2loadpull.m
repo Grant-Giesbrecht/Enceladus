@@ -1,4 +1,4 @@
-function [lp, t_read, t_extract] = file2loadpull(filename, ID)
+function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 % FILE2LOADPULL Returns a LoadPull object from an MDF file, only
 % regenerating it if required.
 %
@@ -14,16 +14,24 @@ function [lp, t_read, t_extract] = file2loadpull(filename, ID)
 %	workspace. Allows ID to replace the default value, the filename with
 %	the extension removed.
 
-	silent = true;
+	p = inputParser;
+	p.addParameter("ID", [], @(x) isstring(x) || ischar(x));
+	p.addParameter("RemoveHarmonics", true, @islogical);
+	p.parse(varargin{:});
+
+	silent = false;
 
 	t_read = -1;
 	t_extract = -1;
 	
 	% Check for optional parameters
-	if ~exist('ID', 'var')
+	if isempty(p.Results.ID)
 		cf = char(filename);
+		sidx = find(cf == '/' | cf == '\', 1, 'Last');
 		pidx = find(cf == '.', 1, 'Last');
-		ID = cf(1:pidx-1);
+		ID = cf(sidx+1:pidx-1);
+	else
+		ID = p.Results.ID;
 	end
 	
 	% Check if LoadPull object already exists
@@ -37,7 +45,7 @@ function [lp, t_read, t_extract] = file2loadpull(filename, ID)
 	% Return LoadPull object from workspace if present
 	if ~load_lp	
 		if ~silent
-			displ("LoadPull object found.");
+			displ("LoadPull object found. Returning existing object.");
 		end
 		
 		% Exit
@@ -73,6 +81,10 @@ function [lp, t_read, t_extract] = file2loadpull(filename, ID)
 		mdf_file = AWRLPmdf;
 		mdf_file.debug = false;
 
+		if ~silent
+			displ("  Reading MDF File: '", ID, ".mdf'.");
+		end
+		
 		% Read MDF file
 		t0 = tic;
 		if ~mdf_file.load(filename)
@@ -85,20 +97,22 @@ function [lp, t_read, t_extract] = file2loadpull(filename, ID)
 		assignin('base', strcat('mdf_', ID), mdf_file);
 		
 		if ~silent
-			displ("MDF File Read in ", t_read, " sec");
+			displ("    MDF File Read in ", t_read, " sec");
 		end
 	else
 		if ~silent
-			displ("MDF data found. Skipping read file.");
+			displ("  MDF object found. Skipping read file.");
 		end
 	end
 
 	% Get LoadPull from AWRLPmdf object
+	displ("  Creating LoadPull object.");
 	t0 = tic;
-	lp = mdf_file.getLoadPull();
+	lp = mdf_file.getLoadPull(p.Results.RemoveHarmonics);
 	t_extract = toc(t0);
 	if ~silent
-		displ("LoadPull created from MDF object in ", t_extract, " sec");
+		displ("    LoadPull created from MDF object in ", t_extract, " sec");
+		displ("Returning new LoadPull object.");
 	end
 	
 	% Save LoadPull object
