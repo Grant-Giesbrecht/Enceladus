@@ -1,4 +1,4 @@
-function mountainplot_gui(lp_data, figno, varargin)
+function mountainplot_gui(lp_data, param, figno, varargin)
 
 	% SIMPLE_GUI2 Select a data set from the pop-up menu, then
 	% click one of the plot-type push buttons. Clicking the button
@@ -68,14 +68,14 @@ function mountainplot_gui(lp_data, figno, varargin)
 	% Generate the data to plot.
 	freq = 10e9;
 	iPwr = 6;
-	lp_fig4 = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
+	lp_filt = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
 % 	title("PAE at 10 GHz, iPower = idx 7");
 
 	% Create a plot in the axes.
 	hold off;
-	contoursc(lp_fig4.gamma(), lp_fig4.pae(), 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);
-	surfsc(lp_fig4.gamma(), lp_fig4.pae(), 'ZLabel', p.Results.ContourLabel);
-	title(p.Results.ContourLabel + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
+	contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param), 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);
+	surfsc(lp_filt.gamma(), lp_filt.getArrayFromName(param), 'ZLabel', p.Results.ContourLabel);
+	title(param + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
 	
 	% Assign the a name to appear in the window title.
 	f.Name = 'Mountain Plot GUI';
@@ -98,12 +98,12 @@ function mountainplot_gui(lp_data, figno, varargin)
 
 		freq = str2num(strs{idx}).*1e9;
 		
-		lp_fig4 = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
+		lp_filt = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
 		hold off;
-		contoursc(lp_fig4.gamma(), lp_fig4.pae(), 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);
-		surfsc(lp_fig4.gamma(), lp_fig4.pae(), 'ZLabel', p.Results.ContourLabel);
+		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param), 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);
+		surfsc(lp_filt.gamma(), lp_filt.getArrayFromName(param), 'ZLabel', p.Results.ContourLabel);
 		displ("Plotting at:", newline, "  Freq: ", freq, " Hz", newline, "  Pwr Idx: ", iPwr);
-		title(p.Results.ContourLabel + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
+		title(param + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
 	end
    
 	function pwr_menu_callback(source,eventdata) 
@@ -114,12 +114,12 @@ function mountainplot_gui(lp_data, figno, varargin)
 
 		iPwr = str2num(strs{idx});
 		
-		lp_fig4 = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
+		lp_filt = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
 		hold off;
-		contoursc(lp_fig4.gamma(), lp_fig4.pae(), 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);
-		surfsc(lp_fig4.gamma(), lp_fig4.pae(), 'ZLabel', p.Results.ContourLabel);
+		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param), 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);
+		surfsc(lp_filt.gamma(), lp_filt.getArrayFromName(param), 'ZLabel', p.Results.ContourLabel);
 		displ("Plotting at:", newline, "  Freq: ", freq, " Hz", newline, "  Pwr Idx: ", iPwr);
-		title(p.Results.ContourLabel + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
+		title(param + " at " + freq./1e9 + " GHz and iPower = " + iPwr);
 	end
 
 	  % Push button callbacks. Each callback plots current_data in the
