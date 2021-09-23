@@ -1,4 +1,4 @@
-function surfsc(gamma, val, varargin)
+function ph = surfsc(gamma, val, varargin)
 
 	expectedDomain = {'Z', 'G'};
 	expectedSchemes = {'Light', 'Dark'};
