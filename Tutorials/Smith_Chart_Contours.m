@@ -67,29 +67,3 @@ grid on;
 
 figure(1);
 smithcontour(rg, ig, abs(pg));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

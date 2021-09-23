@@ -18,19 +18,19 @@ cd(local_dir);
 % Add each listed subdirectory
 first = true;
 for fldr = folders
-	
+
 	% If not first addition, move back to base directory
 	if ~first
 		cd ..
 	end
 	first = false;
-	
+
 	% Change to folder
 	cd(char(fldr));
 	newpath = pwd;
 	disp(['Adding to path: >>', newpath, '<<']);
 	addpath(newpath);
-	
+
 
 end
 
@@ -38,7 +38,7 @@ end
 if (savepath == 0)
     disp(' ')
     disp('***************************************************************');
-    disp('*              Path was updated successfully                  *'); 
+    disp('*              Path was updated successfully                  *');
     disp('***************************************************************');
     disp(' ');
     disp('Now upon starting MATLAB the files in this repository will be');
@@ -48,7 +48,7 @@ if (savepath == 0)
 else
     disp(' ')
     disp('***************************************************************');
-    disp('*              ERROR: Failed to update path.                  *'); 
+    disp('*              ERROR: Failed to update path.                  *');
     disp('***************************************************************');
 end
 cd ..
