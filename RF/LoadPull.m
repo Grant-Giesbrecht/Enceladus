@@ -931,7 +931,7 @@ classdef LoadPull < handle
 			
 		end
 		
-		function [vals, stdevs] = average(obj, idxs, avg_prop, varargin)
+		function [vals, stdevs, bins] = average(obj, idxs, avg_prop, varargin)
 			
 			% Check for optional argument idxs
 			if ~isnumeric(idxs)
@@ -946,6 +946,8 @@ classdef LoadPull < handle
 			stdevs = zeros(1, pts);
 			
 			pop_idxs = [];
+			
+			bins = {varargin{2:2:length(varargin)}};
 			
 			% Get average/stdev for each point
 			for idx = 1:pts
@@ -983,8 +985,12 @@ classdef LoadPull < handle
 				
 			end
 			
+			% Remove missing values
 			vals(pop_idxs) = [];
 			stdevs(pop_idxs) = [];
+			for bidx = 1:length(bins)
+				bins{bidx}(pop_idxs, :) = [];
+			end
 			
 		end
 		
