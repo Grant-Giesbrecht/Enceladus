@@ -945,6 +945,8 @@ classdef LoadPull < handle
 			vals = zeros(1, pts);
 			stdevs = zeros(1, pts);
 			
+			pop_idxs = [];
+			
 			% Get average/stdev for each point
 			for idx = 1:pts
 				
@@ -962,6 +964,12 @@ classdef LoadPull < handle
 				% Get indecies
 				pt_idxs = obj.filter(idxs, args{:});
 				
+				% Handle no points match condition
+				if isempty(pt_idxs)
+					pop_idxs(end+1) = idx;
+					continue;
+				end
+				
 				% Get data to average
 				data = obj.getArrayFromName(avg_prop);
 				
@@ -969,7 +977,14 @@ classdef LoadPull < handle
 				vals(idx) = mean(data(pt_idxs));
 				stdevs(idx) = std(data(pt_idxs));
 				
+% 				if isnan(stdevs(idx)) || isnan(vals(idx))
+% 					displ("~");
+% 				end
+				
 			end
+			
+			vals(pop_idxs) = [];
+			stdevs(pop_idxs) = [];
 			
 		end
 		
