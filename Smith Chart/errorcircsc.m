@@ -48,6 +48,12 @@ function errorcircsc(data, stdev, varargin)
 		
 		c = c_list(idx, :);
 		
+		% Skip values with stdev = 0, will cause nsidedpoly to crash.
+		% Showing no error bars appropriate if stdev = 0
+		if stdev(idx) == 0
+			continue;
+		end
+		
 		p = nsidedpoly(100, 'Center', [x(idx), y(idx)], 'Radius', stdev(idx));
 		plot(p, 'FaceColor', c, 'FaceAlpha', .05)
 		
