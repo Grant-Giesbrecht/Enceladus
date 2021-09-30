@@ -74,8 +74,10 @@ function contourplot2_gui(lp_data, param1, param2, figno, varargin)
 	hPwrMenu.Units = 'normalized';
 
 	% Generate the data to plot.
-	freq = 10e9;
-	iPwr = 6;
+	freq = unique(lp_data.freq);
+	freq = freq(1);
+	iPwr = unique(lp_data.props.iPower);
+	iPwr = iPwr(1);
 	lp_filt = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
 % 	title("PAE at 10 GHz, iPower = idx 7");
 
@@ -110,6 +112,7 @@ function contourplot2_gui(lp_data, param1, param2, figno, varargin)
 		freq = str2num(strs{idx}).*1e9;
 		
 		lp_filt = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
+% 		displ("Plotting at f = ", freq, ", iPwr = ", iPwr);
 		hold off;
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param1), 'ContourLabel', p.Results.ContourLabel1, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color1);
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param2), 'ContourLabel', p.Results.ContourLabel2, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color2);
@@ -128,6 +131,7 @@ function contourplot2_gui(lp_data, param1, param2, figno, varargin)
 		iPwr = str2num(strs{idx});
 		
 		lp_filt = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
+% 		displ("Plotting at f = ", freq, ", iPwr = ", iPwr);
 		hold off;
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param1), 'ContourLabel', p.Results.ContourLabel1, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color1);
 		contoursc(lp_filt.gamma(), lp_filt.getArrayFromName(param2), 'ContourLabel', p.Results.ContourLabel2, 'Scheme', p.Results.Scheme, 'Color', p.Results.Color2);
