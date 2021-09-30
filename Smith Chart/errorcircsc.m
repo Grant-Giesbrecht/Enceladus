@@ -15,6 +15,8 @@ function errorcircsc(data, stdev, varargin)
 % 	p.addParameter('MSizes', [], @(x) true );
 
     p.parse(varargin{:});
+	
+	ax = p.Results.Ax;
 
 	% Get input data as a reflection coefficient
 	if p.Results.Domain == "Z"
