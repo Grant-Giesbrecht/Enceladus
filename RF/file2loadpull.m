@@ -17,6 +17,8 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	p = inputParser;
 	p.addParameter("ID", [], @(x) isstring(x) || ischar(x));
 	p.addParameter("RemoveHarmonics", true, @islogical);
+	p.addParameter("LoadMAT", true, @islogical);
+	p.addParameter("MATFilename", "", @(x) isstring(x) || ischar(x));
 	p.parse(varargin{:});
 
 	silent = false;
@@ -36,6 +38,12 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	else
 		ID = p.Results.ID;
 	end
+	if strcmp(p.Results.MATFilename, "")
+		[pt, nm, ext] = fileparts(filename);
+		MATfn = fullfile(pt, nm+".mat");
+	else
+		MATfn = p.Results.MATFilename;
+	end
 	
 	% Check if LoadPull object already exists
 	load_lp = false;
@@ -51,10 +59,21 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 			displ("LoadPull object found. Returning existing object.");
 		end
 		
+		% Save MAT file if specified
+		if p.Results.LoadMAT && ~isfile(MATfn)
+			file2loadpull_sourcefile_check = filename;
+			t0 = tic;
+			save(MATfn, 'lp', 'file2loadpull_sourcefile_check');
+			t_save = toc(t0);
+			if ~silent
+				displ("MAT file saved in ", t_save, " sec");
+			end
+		end
+		
 		% Exit
 		return;
 	end
-
+	
 	% Determine if a MDF file object exists that matches this file
 	load_mdf = false;
 	try
@@ -66,17 +85,44 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 		load_mdf = true;
 	end
 	
-% 	if exist(strcat('mdf_', ID), 'var')
-% 		
-% 		% Load MDF if name does not match
-% 		mdf_file = eval(strcat('mdf_', ID));
-% 		if mdf_file.filename ~= filename
-% 			load_mdf = true;
-% 		end
-% 		
-% 	else % Load MDF if does not exist
-% 		load_mdf = true;
-% 	end
+	% Determine if a MAT file exists that matches this file
+	loaded_mat = false;
+	overwriteMAT = false;
+	if load_mdf && isfile(MATfn) && p.Results.LoadMAT
+		
+		t0 = tic;
+		displ("Reading MAT file '", MATfn, "'.");
+		S = load(MATfn);
+		t_read = toc(t0);
+		
+		% Ensure file read successfully
+		if exist("S", 'var') && isfield(S, "lp")
+		
+			if ~silent
+				displ("  MAT File Read in ", t_read, " sec");
+			end
+
+			% Check source file name if possible
+			loaded_mat = true;
+			if isfield(S, 'file2loadpull_sourcefile_check')
+				if ~strcmpi(S.file2loadpull_sourcefile_check, filename)
+					displ("  Source file verification: FAILED");
+					loaded_mat = false;
+					overwriteMAT = true;
+				else
+					displ("  Source file verification: PASSED");
+				end
+			end
+
+			% Exit now if loaded variable successfully
+			if loaded_mat
+				displ("Returning LoadPull");
+				assignin('base', strcat('lp_', ID), S.lp); % Save LoadPull object
+				lp = S.lp;
+				return;
+			end
+		end
+	end
 	
 	% Load MDF file if required
 	if load_mdf 
@@ -85,13 +131,13 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 		mdf_file.debug = false;
 
 		if ~silent
-			displ("  Reading MDF File: '", ID, ".mdf'.");
+			displ("Reading MDF File: '", ID, ".mdf'.");
 		end
 		
 		% Read MDF file
 		t0 = tic;
 		if ~mdf_file.load(filename)
-			displ("ERROR: ", mdf_file.msg)
+			displ("  ERROR: ", mdf_file.msg)
 			return;
 		end
 		t_read = toc(t0);
@@ -100,22 +146,33 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 		assignin('base', strcat('mdf_', ID), mdf_file);
 		
 		if ~silent
-			displ("    MDF File Read in ", t_read, " sec");
+			displ("  MDF File Read in ", t_read, " sec");
 		end
 	else
 		if ~silent
-			displ("  MDF object found. Skipping read file.");
+			displ("MDF object found. Skipping read file.");
 		end
 	end
 
 	% Get LoadPull from AWRLPmdf object
-	displ("  Creating LoadPull object.");
+	displ("Creating LoadPull object.");
 	t0 = tic;
 	lp = mdf_file.getLoadPull(p.Results.RemoveHarmonics);
 	t_extract = toc(t0);
 	if ~silent
-		displ("    LoadPull created from MDF object in ", t_extract, " sec");
+		displ("  LoadPull created from MDF object in ", t_extract, " sec");
 		displ("Returning new LoadPull object.");
+	end
+	
+	% Save MAT file if specified
+	if p.Results.LoadMAT && (~isfile(MATfn) || overwriteMAT)
+		file2loadpull_sourcefile_check = filename;
+		t0 = tic;
+		save(MATfn, 'lp', 'file2loadpull_sourcefile_check');
+		t_save = toc(t0);
+		if ~silent
+			displ("MAT file saved in ", t_save, " sec");
+		end
 	end
 	
 	% Save LoadPull object
