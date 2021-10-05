@@ -2,6 +2,11 @@ function contoursc(gamma, val, varargin)
 % CONTOURSC Plot smith chart contours
 %
 
+	% Return if no data provided
+	if isempty(gamma)
+		return;
+	end
+
 	expectedSchemes = {'Light', 'Dark'};
 
 	p = inputParser;

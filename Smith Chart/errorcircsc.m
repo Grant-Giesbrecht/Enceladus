@@ -15,6 +15,8 @@ function errorcircsc(data, stdev, varargin)
 % 	p.addParameter('MSizes', [], @(x) true );
 
     p.parse(varargin{:});
+	
+	ax = p.Results.Ax;
 
 	% Get input data as a reflection coefficient
 	if p.Results.Domain == "Z"
@@ -45,6 +47,12 @@ function errorcircsc(data, stdev, varargin)
 	for idx = 1:length(x)		
 		
 		c = c_list(idx, :);
+		
+		% Skip values with stdev = 0, will cause nsidedpoly to crash.
+		% Showing no error bars appropriate if stdev = 0
+		if stdev(idx) == 0
+			continue;
+		end
 		
 		p = nsidedpoly(100, 'Center', [x(idx), y(idx)], 'Radius', stdev(idx));
 		plot(p, 'FaceColor', c, 'FaceAlpha', .05)

@@ -1073,6 +1073,9 @@ classdef LoadPull < handle
 				% For each 'max', find next highest point
 				for mv = 1:cmd.mmcount
 					maxval = max(max_array); % Find max
+					if isempty(maxval) % Quit early if find all points
+						break;
+					end
 					match_idx = match_idx | (array == maxval); % Save where max occurs
 					max_array(max_array == maxval) = []; % Remove maxes from list
 				end
@@ -1080,6 +1083,9 @@ classdef LoadPull < handle
 				match_idx = [];
 				for mv = 1:cmd.mmcount
 					minval = min(array);
+					if isempty(minval) % Quit early if find all points
+						break;
+					end
 					match_idx = [match_idx, (array == minval)];
 					if ~isempty(match_idx)
 						array(find(match_idx)) = [];
