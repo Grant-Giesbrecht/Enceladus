@@ -1204,7 +1204,7 @@ classdef LoadPull < handle
 		%	See also: p_out, p_in
 			
 			%Check for optional arguments
-			if ~exists('units', 'var')
+			if ~exist('units', 'var')
 				units = "dBm";
 			else
 				units = string(units);
