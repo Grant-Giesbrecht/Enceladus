@@ -1,6 +1,6 @@
 function ph = plotsc(data, varargin)
 
-	if isnan(data)
+	if any(isnan(data)) || isempty(data)
 		return
 	end
 
@@ -69,7 +69,15 @@ function ph = plotsc(data, varargin)
 		end
 		
 		c = getColorData(p.Results.ColorVar, cmap);
-		ph = scatter(ax, x, y, p.Results.MSizes, c, 'Marker', '+');
+		try
+			ph = scatter(ax, x, y, p.Results.MSizes, c, 'Marker', '+');
+		catch
+			warning("Failed to plot! Wrong number of inputs");
+			dets(x);
+			dets(y);
+			dets(c);
+			return
+		end
 	end
 
 	% Set datatip to custom format
