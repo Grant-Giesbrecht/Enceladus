@@ -495,7 +495,13 @@ classdef DDFIO < handle
 
 			kstr = obj.swrite(options);
 
-			fid = fopen(filename,'wt');
+			[fid, message] = fopen(filename,'w+');
+			
+			if fid == -1
+				warning("Failed to open file '" + filename + "' (" + message + ")");
+				return;
+			end
+			
 			fprintf(fid, kstr);
 			fclose(fid);
 
