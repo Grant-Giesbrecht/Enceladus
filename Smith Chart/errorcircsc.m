@@ -1,5 +1,9 @@
 function errorcircsc(data, stdev, varargin)
 
+	if isempty(data) || isempty(stdev)
+		return
+	end
+
 	expectedDomain = {'Z', 'G'};
 	expectedSchemes = {'Light', 'Dark'};
 
