@@ -1205,7 +1205,8 @@ classdef LoadPull < handle
 			
 			%Check for optional arguments
 			if ~exist('units', 'var')
-				units = "dBm";
+% 				units = "dBm";
+				units = 'W';
 			else
 				units = string(units);
 			end
@@ -1224,7 +1225,7 @@ classdef LoadPull < handle
 			% Get value
 			v = obj.comp_Pload;
 			
-			% Perform conversion
+ 			% Perform conversion
 			if contains(units, "dB", 'IgnoreCase', true)
 				v = lin2dB(v.*1e3, 10); % Base 10 log conversion
 			end
