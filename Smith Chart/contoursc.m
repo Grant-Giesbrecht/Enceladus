@@ -1,4 +1,4 @@
-function contoursc(gamma, val, varargin)
+function [h, contours_out] = contoursc(gamma, val, varargin)
 % CONTOURSC Plot smith chart contours
 %
 
@@ -14,6 +14,7 @@ function contoursc(gamma, val, varargin)
 	p.addParameter('ContourLabel', "Z", @(x) isstring(x) || ischar(x) );
 	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
 	p.addParameter('Color', [0, 0, .8], @isnumeric );
+	p.addParameter('ContourLevels', [], @isnumeric);
 	p.parse(varargin{:});
 
 	num_real = 100;
@@ -38,8 +39,22 @@ function contoursc(gamma, val, varargin)
 	im_vec = I(:,1);
 	
 	% Calculate contours
-	CM = contourc(re_vec, im_vec, V);
+	if isempty(p.Results.ContourLevels)
+		CM = contourc(re_vec, im_vec, V);
+	elseif numel(p.Results.ContourLevels) == 1
+		CM = contourc(re_vec, im_vec, V, [p.Results.ContourLevels, p.Results.ContourLevels]);
+	else
+		CM = contourc(re_vec, im_vec, V, p.Results.ContourLevels);
+	end
 	sa = cm2struct(CM);
+	
+	% Sometimes contourc will give multiple contours when 1 was requested.
+	% This removes the extra contours
+	if numel(p.Results.ContourLevels) == 1 && numel(sa) ~= 1
+		sa = sa(1);
+	end
+	
+	contours_out = [];
 	
 	% Plot each contour
 	count = 1;
@@ -56,8 +71,12 @@ function contoursc(gamma, val, varargin)
 			set( get( get( h, 'Annotation'), 'LegendInformation' ), 'IconDisplayStyle', 'off' );
 		end
 		
+		new_cont = {};
+		new_cont.value = arr.level;
+		new_cont.gamma = g;
+		contours_out = [contours_out, new_cont];
+		
 		count = count + 1;
-% 		hold on
 	end
 	
 	if ~isempty(p.Results.ContourLabel)
