@@ -817,7 +817,7 @@ classdef LoadPull < handle
 			sr = sort_regions(1:count-1,:);
 		end
 		
-		function rearrange(obj, I)
+		function rearrange(obj, I, surpressLengthIWarning)
 		% REARRANGE Rearrange all populated parameters in the object
 		%
 		%	 REARRANGE(I) Shuffles all arrays in the object according to I.
@@ -826,9 +826,19 @@ classdef LoadPull < handle
 		%	 props).
 		%
 		% See also: organize()
+		
+			if ~exist('surpressLengthIWarning', 'var')
+				surpressLengthIWarning = false;
+			end
+
+			expected = obj.numpoints();
+		
+			if length(I) ~= expected && ~surpressLengthIWarning
+				warning("Length of input indecies has incorrect length!");
+			end
 			
-			% Determine expected length
-			expected = length(I);
+% 			% Determine expected length
+% 			expected = length(I);
 			
 			if ~isempty(obj.freq)
 				if length(obj.freq) ~= expected
@@ -1297,6 +1307,9 @@ classdef LoadPull < handle
 			if ~obj.isCurrent("PAE")
 				obj.comp_PAE = 100.*(abs(obj.p_load()) - abs(obj.p_in()))./obj.p_dc;
 				obj.setCurrent("PAE");
+				
+				%TODO: Make this cleaner
+				obj.comp_PAE(obj.comp_PAE > 100) = 100;
 			end
 			
 			% Return value
@@ -1336,6 +1349,18 @@ classdef LoadPull < handle
 			v = obj.comp_DrainEff;
 			
 		end %========================== END DRAINEFF ======================
+		
+		function N = trimNonphysical(obj) %================================
+			
+			all_pae = 100.*(abs(obj.p_load()) - abs(obj.p_in()))./obj.p_dc;
+			
+			keepIdx = find(all_pae <= 100);
+			
+			N = obj.numpoints() - length(keepIdx);
+			
+			obj.rearrange(keepIdx);
+			
+		end %========================== TRIMNONPHYSICAL ===================
 		
 		%==================================================================
 		%====              Functions for tracking currency             ====
