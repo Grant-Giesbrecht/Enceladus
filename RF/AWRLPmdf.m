@@ -301,9 +301,14 @@ classdef AWRLPmdf < handle
 		
 		function idx = bdataIndex(obj, name)
 			
+			if isempty(obj.bdata)
+				error("Object empty, cannot find bdata index.");
+			end
+			
 			idx = -1;
 			
 			arr = obj.bdata{end};
+			
 			
 			for vi = 1:length(arr)
 				
@@ -874,6 +879,13 @@ classdef AWRLPmdf < handle
 		end
 		
 		function lp = getLoadPull(obj, removeHarmonics)
+			
+			% Verify that data is populated
+			if isempty(obj.bdata)
+				lp = LoadPull;
+				warning("ARWLPmdf Object Empty: Returned empty load pull.");
+				return;
+			end
 			
 			% Handle optional arguments
 			if ~exist('removeHarmonics', 'var')
