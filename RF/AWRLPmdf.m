@@ -31,7 +31,15 @@ classdef AWRLPmdf < handle
 		msg
 		debug
 		
+		% Filename that was read (can be used to see if file should be
+		% re-read)
 		filename
+		
+		% Sweep varaible comments - These are comments that AWR writes to
+		% translate indexed values to real values
+		sv_comments % Raw comments (list of strings)
+		sv_names % Processed comment names (list of strings)
+		sv_vals % Processed comment values (list of cells of double lists)
 		
 	end
 	
@@ -54,6 +62,9 @@ classdef AWRLPmdf < handle
 			obj.debug = false;
 			
 			obj.filename = "";
+			obj.sv_comments = [];
+			obj.sv_names = [];
+			obj.sv_vals = [];
 		end
 		
 		function tf = load(obj, filename)
@@ -86,7 +97,12 @@ classdef AWRLPmdf < handle
 					sline = fgetl(fid); %Read line
 					lnum = lnum+1; %Increment Line Number
 
-					%Remove comments
+					% Collect 'Sweep Variable' comments
+					if length(sline) > 17 && strcmpi(sline(1:17), '! Sweep Variable:')
+						obj.sv_comments = [obj.sv_comments, string(sline)];
+					end
+					
+					% Remove comments
 					sline = trimtok(sline, '!');
 
 					%Note: char(9) is the tab character
@@ -880,6 +896,9 @@ classdef AWRLPmdf < handle
 		
 		function lp = getLoadPull(obj, removeHarmonics)
 			
+			% Process any sweep variable comments
+			obj.processSweepVarComments();
+			
 			% Verify that data is populated
 			if isempty(obj.bdata)
 				lp = LoadPull;
@@ -1032,6 +1051,30 @@ classdef AWRLPmdf < handle
 						continue;
 					end
 					
+					% Check sweep var comments for iPower values: NOTE:
+					% This assumes that AWR saved the input powers in a
+					% list called 'Pwr' in units of dBW.
+					ci = contains(obj.sv_names, "Pwr", 'IgnoreCase', true);
+					if contains(lpvar.name, "iPower") && any(ci)
+						% Else save to 'props'
+						svv = obj.sv_vals(ci);
+						svv = svv{:};
+						lp.props.("Pin_dBm")(idx) = cvrt(svv(lpvar.data(1, 1)), 'dBW', 'dBm');
+					end
+					
+					% Check for name match (case insensitive, lpvar.name
+					% contained in comment) in sweep var comments
+					ci = contains(obj.sv_names, AWRLPmdf.fieldName(lpvar.name), 'IgnoreCase', true);
+					if any(ci)
+						name = char(AWRLPmdf.fieldName(lpvar.name));
+						if name(1) == 'i'
+							name = name(2:end);
+						end
+						svv = obj.sv_vals(ci);
+						svv = svv{:};
+						lp.props.(name)(idx) = svv(lpvar.data(1, 1));
+					end
+					
 					% Capture frequency in dedicated vector rather than
 					% 'props'
 					if contains(lpvar.name, "F1") || contains(upper(lpvar.name), "FREQ")
@@ -1042,6 +1085,8 @@ classdef AWRLPmdf < handle
 								lp.freq(idx+moduloHarm*(nh-1)) = lpvar.data(1, 1)*harmNo(nh);
 							end
 						end
+						
+						continue;
 					end
 					
 					% Else save to 'props'
@@ -1095,7 +1140,37 @@ classdef AWRLPmdf < handle
 						
 		end
 		
+		function processSweepVarComments(obj)
+			
+			obj.sv_names = [];
+			obj.sv_vals = [];
+			
+			% For each SV comment...
+			for sv = obj.sv_comments
+				
+				% Make a char based line for processing
+				svc = char(sv);
+				
+				% Remove known start: '! Sweep Variable:'
+				svc = svc(18:end);
+				
+				%Note: char(9) is the tab character
+				words = parseIdx(svc, [" ", char(9)]);
+			
+				% Get name and value
+				[value, ~] = getMatrix(svc, "d"); 
+				if ~isa(value, 'string') % Only save if not a string (ie. error message)
+					obj.sv_names = [obj.sv_names, string(words(1).str)];
+					obj.sv_vals = [obj.sv_vals, {value}];
+				end
+				
+				
+			end
+			
+		end
+		
 	end
+	
 	
 	methods(Static)
 		
