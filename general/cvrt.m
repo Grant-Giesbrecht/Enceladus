@@ -22,7 +22,7 @@ function valf = cvrt(val, units0, unitsf)
 		quant = "POWER";
 		val_si = val;
 	elseif strcmp(units0, "DBW")
-		quant = "DBW";
+		quant = "POWER";
 		val_si = dB2lin(val, 10);
 	else
 		error("Unit " + unit0 + " not recognized.");
