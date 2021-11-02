@@ -41,6 +41,10 @@ classdef LoadPull < handle
 		
 		sort_info
 		
+		%********* Repeat Warning Info ****************************
+		
+		sent_pae_source_value_warning
+		
 	end
 	
 	methods
@@ -66,9 +70,7 @@ classdef LoadPull < handle
 			obj.I2_DC = [];
 
 			obj.props = {};
-			
-			
-			
+
 			obj.comp_Pload = [];
 			obj.comp_PAE = [];
 			obj.comp_gamma = [];
@@ -100,6 +102,83 @@ classdef LoadPull < handle
 			unsorted.name = "base";
 			unsorted.regions = [1, -1];
 			obj.sort_info = [unsorted];
+			
+			sent_pae_source_value_warning = false;
+		end
+		
+		function merge(obj, varargin)
+		% MERGE Merge data from multiple LoadPull objects
+		%
+		% Merges the data from one or more additional LoadPull objects into
+		% the current LoadPull object.
+		%
+		%	MERGE( LP, ...) Accepts 1 or more LoadPull objects as arguments
+		%	and adds their base (non-derived) parameters to this object,
+		%	then resets this object. 
+		%
+		% See also: AWRLPmdf
+		
+			% Loop over all input objects
+			argno = 0;
+			for vci = 1:nargin-1
+				
+				% Convert from cell to argument type
+				v = varargin{vci};
+				
+				% Increment counter
+				argno = argno + 1;
+				
+				% Verify that argument is a LoadPull 
+				if ~isa(v, 'LoadPull')
+					warning("Cannot merge type '" + class(v) + "' with LoadPull.");
+					continue;
+				end
+				
+				if v.numpoints() == 0
+					warning("Skipping argument No.: " + argno + " because it contains no data.");
+					continue;
+				end
+				
+				% Check that props agree
+				if obj.numpoints() ~= 0 && ~isequal(fieldnames(obj.props), fieldnames(v.props))
+					warning("Cannot merge LoadPull (Argument No.: " + argno + ") because props structs do not match fields.");
+					continue;
+				end
+				
+				np = obj.numpoints();
+				
+				% Mark object as not current
+				obj.reset();
+				
+				% Update base parameters
+				obj.freq = [obj.freq, v.freq];
+				obj.Z0 = [obj.Z0, v.Z0];
+				
+				obj.a1 = [obj.a1, v.a1];
+				obj.b1 = [obj.b1, v.b1];
+				obj.a2 = [obj.a2, v.a2];
+				obj.b2 = [obj.b2, v.b2];
+				
+				obj.V1_DC = [obj.V1_DC, v.V1_DC];
+				obj.I1_DC = [obj.I1_DC, v.I1_DC];
+				obj.V2_DC = [obj.V2_DC, v.V2_DC];
+				obj.I2_DC = [obj.I2_DC, v.I2_DC];
+				
+				if np > 0
+					for fc = string(fieldnames(v.props))'
+						f = fc{:};
+						obj.props.(f) = [obj.props.(f), v.props.(f)];
+					end
+				else
+					for fc = string(fieldnames(v.props))'
+						f = fc{:};
+						obj.props.(f) = v.props.(f);
+					end
+				end
+				
+			end
+			
+			
 		end
 		
 		%==================================================================
@@ -1296,6 +1375,14 @@ classdef LoadPull < handle
 			
 			if ~obj.isCurrent("PAE")
 				obj.comp_PAE = 100.*(abs(obj.p_load()) - abs(obj.p_in()))./obj.p_dc;
+				if any(obj.comp_PAE > 100)  %TODO: Is there a better way to handle such sanity checks?
+					if ~obj.sent_pae_source_value_warning
+						warning("Provided power data is incorrect. PAE calculated to be > 100%. Setting terms to 100%.");
+						obj.sent_pae_source_value_warning = true;
+					end
+					obj.comp_PAE(obj.comp_PAE > 100) = 100;
+				end
+				
 				obj.setCurrent("PAE");
 			end
 			
