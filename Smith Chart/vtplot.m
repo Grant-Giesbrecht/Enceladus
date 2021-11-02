@@ -37,7 +37,8 @@ if ~exist('sweep_divisor', 'var')
 	ov_v = lp_fig2.getArrayFromName(optimization_var);
 	plot(s_sv./sweep_divisor, ov_v(I), 'Marker', '*', 'LineStyle', '--', 'LineWidth', 1.0, 'MarkerSize', 15);
 	grid on
-	legend('Average of 10', 'Max');
+	legend('Average of 10', 'Max', 'Location', 'SouthEast');
 	ylabel("Max " + optimization_var +" ("+unit_o_str+")");
 	xlabel(sweep_var+" ("+unit_s_str+")");
+	force0y;
 end
