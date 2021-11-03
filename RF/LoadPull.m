@@ -185,6 +185,30 @@ classdef LoadPull < handle
 		%====             Sort and Filter Functions                    ====
 		%==================================================================
 		
+		function nlp = gfilter(obj, idxs, varargin)
+		% GFILTER Filters points and returns a LoadPull object
+		%
+		% Equivilent to a call of filter() followed by get(). See
+		% documentation for LoadPull.filter() for argument options.
+		%
+		% See also: filter, get
+		
+			i = obj.filter(idxs, varargin);
+			nlp = obj.get(i);
+		end
+		
+		function nlp = glistfilter(obj, idxs, varargin)
+		% GLISTFILTER Filters points and returns a LoadPull object
+		%
+		% Equivilent to a call of filter() followed by get(). See
+		% documentation for LoadPull.filter() for argument options.
+		%
+		% See also: listfilter, get, filter
+		
+			i = obj.listfilter(idxs, varargin);
+			nlp = obj.get(i);
+		end
+		
 		function idx_filt = filter(obj, idxs, varargin) %===================================
 		% FILTER Filters points based on a set of rules
 		%
