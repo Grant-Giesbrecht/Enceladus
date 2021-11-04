@@ -28,13 +28,37 @@ classdef DeviceAnalysis < handle
 		end
 		
 		function nfilt = filter(obj, varargin)
+		% FILTER Filters points by passing filter commands to the LoadPull
+		% filter function.
+		%
+		% See also: reset
+		
 			obj.lp = obj.lp.gfilter(varargin{:});
 			
 			nfilt = obj.lp_unmodified.numpoints() - obj.lp.numpoints();
 		end
 		
 		function reset(obj)
+		% RESET Resets all filters applied to the LoadPull class
+		%
+		% Resets all applied filters by duplicating the unmodified LoadPull
+		% and overwritting the filtered LoadPull with it. 
+		%
+		% See also: filter, reset
+		
 			obj.lp = obj.lp_unmodified.get(1:obj.lp_unmodified.numpoints());
+		end
+		
+		function dda = dupl(obj)
+		% DUPL Duplicates the DeviceAnalysis class
+		%
+		% Makes a copy of the LoadPull fields (lp and lp_unmodified) and
+		% returns the new DeviceAnalysis object.
+		%
+		% See also: reset
+		
+			dda = DeviceAnalysis(obj.lp_unmodified);
+			
 		end
 		
 		function showfn(obj)
