@@ -48,8 +48,11 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 % 	plot(p1);
 % 	plot(p2);
 	polyi = intersect(p1, p2);
-	h = plot(polyi, 'EdgeColor', 'none');
-	
+	try
+		h = plot(polyi, 'EdgeColor', 'none');
+	catch
+	end
+		
 	iarea = area(polyi);
 	
 end
