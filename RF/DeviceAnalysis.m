@@ -37,7 +37,13 @@ classdef DeviceAnalysis < handle
 			obj.lp = obj.lp_unmodified.get(1:obj.lp_unmodified.numpoints());
 		end
 		
-		function showvars(obj)			
+		function showfn(obj)
+			displ("venn_freq");
+			displ("vt_pae_vs_freq");
+			displ("vt_pout_vs_freq");
+		end
+		
+		function showv(obj)			
 			
 			% DEclare lists
 			names = [];
@@ -78,11 +84,11 @@ classdef DeviceAnalysis < handle
 				end
 				
 				valstr = "";
-% 				if quants(i) < 10
-% 					ddfi = DDFItem(obj.lp.getArrayFromName(namestr), "StringGenerator", "");
-% 					valstr = ddfi.getValueStr();
-% 					valstr = ", " + valstr;
-% 				end
+				if quants(i) < 10
+					ddfi = DDFItem(unique(obj.lp.getArrayFromName(namestr)), "StringGenerator", "");
+					valstr = ddfi.getValueStr();
+					valstr = ", " + valstr;
+				end
 				displ("    ", namestr, ": ", quants(i) , " unique values", valstr); 
 			end
 			
@@ -92,7 +98,7 @@ classdef DeviceAnalysis < handle
 				if ~strcmpi(namestr, "FREQ")
 					namestr = "PROPS."+namestr;
 				end
-				displ("    ", namestr);%, " = ", obj.lp.getArrayFromName(namestr)); 
+				displ("    ", namestr, " = ", unique(obj.lp.getArrayFromName(namestr))); 
 			end
 			
 		end
@@ -117,8 +123,10 @@ classdef DeviceAnalysis < handle
 			for f = freqs
 
 				% Specify subplot for vennsc
-				subplot(2, 3, count);
-
+				if count <= 6
+					subplot(2, 3, count);
+				end
+				
 				% Filter LP to specific points
 				lpfilt = obj.lp.get(obj.lp.filter("Freq", f));
 
@@ -137,6 +145,17 @@ classdef DeviceAnalysis < handle
 				count = count + 1;
 			end
 			
+		end
+		
+		function fom_freq(obj)
+			figure(6);
+			hold off
+			plot(unique(obj.lp.freq())./1e9, obj.fom_vs.freq, 'LineStyle', '-.', 'Marker', '*', 'MarkerSize', 15, 'LineWidth', 1);
+			xlabel("Frequency (GHz)");
+			ylabel("FOM (\Gamma^2)");
+			title("Figure of Merit over Frequency");
+			grid on
+			force0y;
 		end
 		
 		function vt_pae_vs_freq(obj)
