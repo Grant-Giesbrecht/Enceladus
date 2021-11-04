@@ -127,9 +127,13 @@ classdef DeviceAnalysis < handle
 			
 		end
 		
-		function venn_freq(obj, pae_spec, pout_spec)
+		function venn_freq(obj, pae_spec, pout_spec, hidePlots)
 			
 			freqs = unique(obj.lp.freq());
+			
+			if ~exist('hidePlots', 'var')
+				hidePlots = false;
+			end
 			
 			if ~exist('pout_spec', 'var')
 				pout_spec = 3;
@@ -147,7 +151,7 @@ classdef DeviceAnalysis < handle
 			for f = freqs
 
 				% Specify subplot for vennsc
-				if count <= 6
+				if count <= 6 && ~hidePlots
 					subplot(2, 3, count);
 				end
 				
@@ -160,7 +164,7 @@ classdef DeviceAnalysis < handle
 
 				% Generate vennsc
 				hold off
-				[~,~,a] = vennsc([c1, c2]);
+				[~,~,a] = vennsc([c1, c2], 'HidePlots', hidePlots);
 % 				plotsc(lpfilt.gamma(), 'Scatter', true, 'Marker', '+', 'MarkerEdgeColor', [.6, 0, 0]);
 				obj.fom_vs.freq(count) = a;
 				legend('PAE', "P_{out}", 'Location', 'SouthEast');
@@ -168,6 +172,44 @@ classdef DeviceAnalysis < handle
 
 				count = count + 1;
 			end
+			
+		end
+		
+		function fom_freq_vgs(obj, pae_spec, pout_spec)
+			
+			if ~exist('pout_spec', 'var')
+				pout_spec = 3;
+			end
+			
+			if ~exist('pae_spec', 'var')
+				pae_spec = 30;
+			end
+			
+			% Get VGS or die trying
+			try
+				vgs = unique(obj.lp.props.V_GS);
+			catch
+				warning("Faield to sweep Vgs. Could not find property 'props.V_GS'");
+				return;
+			end
+			
+			% Create a new DA for each V_GS point
+			fom_sweep = [];
+			count = 1;
+			for v = vgs
+				da = obj.dupl();
+				da.filter("props.V_GS", v);
+				da.venn_freq(pae_spec, pout_spec, true);
+				fom_sweep(count, :) = da.fom_vs.freq;
+				count = count + 1;
+			end
+			
+			figure(2);
+			surf(unique(obj.lp.freq())./1e9, vgs, fom_sweep);
+			xlabel("Frequency (GHz)");
+			ylabel("V_{GS} (V)");
+			zlabel("FOM");
+			title("FOM over Frequency and Gate Bias");
 			
 		end
 		
