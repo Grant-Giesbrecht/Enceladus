@@ -193,7 +193,7 @@ classdef LoadPull < handle
 		%
 		% See also: filter, get
 		
-			i = obj.filter(idxs, varargin);
+			i = obj.filter(idxs, varargin{:});
 			nlp = obj.get(i);
 		end
 		
