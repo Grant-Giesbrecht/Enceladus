@@ -67,8 +67,24 @@ classdef AWRLPmdf < handle
 			obj.sv_vals = [];
 		end
 		
-		function tf = load(obj, filename)
+		function tf = load(obj, filename, showProgress)
 			
+			% Check for optional argument
+			if ~exist('showProgress', 'var')
+				showProgress = true;
+			end
+			
+			% Get number of lines
+			try
+				nlines = filenumlines(filename);
+			catch
+				showProgress = false;
+			end
+			
+			% Initialize waitbar
+			if showProgress
+				wb = waitbar(0,'0% - Reading MDF File', 'CreateCancelBtn','setappdata(gcbf,''canceling'',1)');
+			end
 			obj.filename = filename;
 			
 			tf = true;
@@ -91,12 +107,26 @@ classdef AWRLPmdf < handle
 			
             %Read file line by line
 			lnum = 0;
+			next_pcnt = .01;
 			while(~feof(fid))
+				
+				% Check for clicked Cancel button
+				if getappdata(wb,'canceling')
+					delete(wb);
+					warning("MDF read aborted by user.");
+					tf = false;
+					return
+				end
 				
 				if ~recheck % Get next line
 					sline = fgetl(fid); %Read line
 					lnum = lnum+1; %Increment Line Number
-
+					
+					if showProgress && lnum/nlines > next_pcnt
+						next_pcnt = next_pcnt + .01; % Increment by 1%
+						waitbar(lnum/nlines, wb, round(lnum/nlines*100)+"% - Reading MDF File (line: "+num2str(lnum)+")");
+					end
+					
 					% Collect 'Sweep Variable' comments
 					if length(sline) > 17 && strcmpi(sline(1:17), '! Sweep Variable:')
 						obj.sv_comments = [obj.sv_comments, string(sline)];
@@ -313,6 +343,8 @@ classdef AWRLPmdf < handle
 				
 			end
 			
+			waitbar(1, wb, "100% - Reading MDF File (line: "+num2str(lnum)+")");
+			delete(wb);
 		end
 		
 		function idx = bdataIndex(obj, name)
