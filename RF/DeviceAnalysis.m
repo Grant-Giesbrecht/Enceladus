@@ -25,6 +25,66 @@ classdef DeviceAnalysis < handle
 			obj.fom_specs = [];
 		end
 		
+		function showvars(obj)			
+			
+			% DEclare lists
+			names = [];
+			quants = [];
+			names_one = [];
+			
+			
+			% Get num freqs
+			nfreq = numel(unique(obj.lp.freq));
+			
+			% Categorize freqs
+			if nfreq ~= 1
+				names = [names, string("FREQ")];
+				quants = [quants, nfreq];
+			else
+				names_one = [names_one, "FREQ"];
+			end
+
+			% Loop through properties and categorize each
+			for fc = string(fieldnames(obj.lp.props))'
+				f = fc{:};
+				num_prop = numel(unique(obj.lp.props.(f)));
+				if num_prop ~= 1
+					names = [names, string(f)];
+					quants = [quants, num_prop];
+				else
+					names_one = [names_one, string(f)];
+				end
+			end
+			
+			% Display multi-value properties
+			barprint("Varying Properties:");
+			for i = 1:numel(names)
+				
+				namestr = names(i);
+				if ~strcmpi(namestr, "FREQ")
+					namestr = "PROPS."+namestr;
+				end
+				
+				valstr = "";
+% 				if quants(i) < 10
+% 					ddfi = DDFItem(obj.lp.getArrayFromName(namestr), "StringGenerator", "");
+% 					valstr = ddfi.getValueStr();
+% 					valstr = ", " + valstr;
+% 				end
+				displ("    ", namestr, ": ", quants(i) , " unique values", valstr); 
+			end
+			
+			barprint("Single-Valued Properties:");
+			for i = 1:numel(names_one)
+				namestr = names_one(i);
+				if ~strcmpi(namestr, "FREQ")
+					namestr = "PROPS."+namestr;
+				end
+				displ("    ", namestr);%, " = ", obj.lp.getArrayFromName(namestr)); 
+			end
+			
+		end
+		
 		function venn_freq(obj, pae_spec, pout_spec)
 			
 			freqs = unique(obj.lp.freq());
