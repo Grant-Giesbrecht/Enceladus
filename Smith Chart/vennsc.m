@@ -14,6 +14,7 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 	p.addParameter('ContourLabel', "Z", @(x) isstring(x) || ischar(x) );
 	p.addParameter('Scheme', 'Light', @(x) any(validatestring(char(x), expectedSchemes)) );
 	p.addParameter('Color', [0, 0, .8], @isnumeric );
+	p.addParameter('HidePlots', false, @islogical );
 	p.parse(varargin{:});
 
 	num_real = 100;
@@ -49,7 +50,9 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 % 	plot(p2);
 	polyi = intersect(p1, p2);
 	try
-		h = plot(polyi, 'EdgeColor', 'none');
+		if ~p.Results.HidePlots
+			h = plot(polyi, 'EdgeColor', 'none');
+		end
 	catch
 	end
 		
