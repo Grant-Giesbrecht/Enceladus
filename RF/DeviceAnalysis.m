@@ -4,6 +4,7 @@ classdef DeviceAnalysis < handle
 		
 		% Loadpull data
 		lp
+		lp_unmodified
 		
 		% Struct, field names are the independent variable (ie. FOM vs
 		% Field). List FOM values for 
@@ -19,10 +20,21 @@ classdef DeviceAnalysis < handle
 		
 		function obj = DeviceAnalysis(lp)			
 			obj.lp = lp;
+			obj.lp_unmodified = lp.get(1:lp.numpoints());
 			
 			obj.fom_vs = {};
 			
 			obj.fom_specs = [];
+		end
+		
+		function nfilt = filter(obj, varargin)
+			obj.lp = obj.lp.gfilter(varargin{:});
+			
+			nfilt = obj.lp_unmodified.numpoints() - obj.lp.numpoints();
+		end
+		
+		function reset(obj)
+			obj.lp = obj.lp_unmodified.get(1:obj.lp_unmodified.numpoints());
 		end
 		
 		function showvars(obj)			
