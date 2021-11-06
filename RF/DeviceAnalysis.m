@@ -213,6 +213,44 @@ classdef DeviceAnalysis < handle
 			
 		end
 		
+		function fom_freq_pin(obj, pae_spec, pout_spec)
+			
+			if ~exist('pout_spec', 'var')
+				pout_spec = 3;
+			end
+			
+			if ~exist('pae_spec', 'var')
+				pae_spec = 30;
+			end
+			
+			% Get VGS or die trying
+			try
+				pin = unique(obj.lp.props.Pin_dBm);
+			catch
+				warning("Faield to sweep Pin. Could not find property 'props.V_GS'");
+				return;
+			end
+			
+			% Create a new DA for each V_GS point
+			fom_sweep = [];
+			count = 1;
+			for v = pin
+				da = obj.dupl();
+				da.filter("props.Pin_dBm", v);
+				da.venn_freq(pae_spec, pout_spec, true);
+				fom_sweep(count, :) = da.fom_vs.freq;
+				count = count + 1;
+			end
+			
+			figure(4);
+			surf(unique(obj.lp.freq())./1e9, pin, fom_sweep);
+			xlabel("Frequency (GHz)");
+			ylabel("P_{In} (dBm)");
+			zlabel("FOM");
+			title("FOM over Frequency and Input Power");
+			
+		end
+		
 		function fom_freq(obj)
 			figure(6);
 			hold off
