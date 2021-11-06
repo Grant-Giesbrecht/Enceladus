@@ -1469,7 +1469,7 @@ classdef LoadPull < handle
 			
 			N = obj.numpoints() - length(keepIdx);
 			
-			obj.rearrange(keepIdx);
+			obj.rearrange(keepIdx, true);
 			
 		end %========================== TRIMNONPHYSICAL ===================
 		
