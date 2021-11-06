@@ -50,8 +50,10 @@ function [h, contours_out] = contoursc(gamma, val, varargin)
 	
 	% Sometimes contourc will give multiple contours when 1 was requested.
 	% This removes the extra contours
-	if numel(p.Results.ContourLevels) == 1 && numel(sa) ~= 1
+	if numel(p.Results.ContourLevels) == 1 && numel(sa) > 1
 		sa = sa(1);
+	elseif numel(p.Results.ContourLevels) == 1 && isempty(sa)
+		sa = [];
 	end
 	
 	contours_out = [];
