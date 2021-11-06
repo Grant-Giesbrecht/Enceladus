@@ -30,8 +30,14 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 		end
 		
 		% Plot contour
-		[h, cont_data] = contoursc(c.gamma, c.values, 'ContourLabel', c.labelstr, 'ContourLevels', c.venn_min, 'Color', c.color);
-		
+		try
+			[h, cont_data] = contoursc(c.gamma, c.values, 'ContourLabel', c.labelstr, 'ContourLevels', c.venn_min, 'Color', c.color);
+		catch
+			iarea = 0;
+			polyi = [];
+			h = [];
+			return;
+		end
 		% Save all contours (to find overlap later)
 		plot_contours = [plot_contours, cont_data];
 		
