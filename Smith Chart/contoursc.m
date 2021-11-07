@@ -31,6 +31,17 @@ function [h, contours_out] = contoursc(gamma, val, varargin)
 	im_gamma = imag(gamma);
 	[R, I] = meshgrid(linspace(min(re_gamma), max(re_gamma), num_real ), linspace( min(im_gamma), max(im_gamma), num_imag ));
 	
+% 	% Remove duplicate points (will cause a warning to be printed and would
+% 	% take the average by default). Keep the point with the maximum value
+% 	rdupls = getMultiples(re_gamma);
+% 	idupls = getMultiples(im_gamma);
+
+	% Remove points that are NaN
+	nan_idxs = isnan(val);
+	re_gamma(nan_idxs) = [];
+	im_gamma(nan_idxs) = [];
+	val(nan_idxs) = [];
+
 	% Interpolate the data in 'val' over the new grid
 	V = griddata(re_gamma, im_gamma, val, R, I);
 	
