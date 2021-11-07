@@ -31,6 +31,12 @@ function [h, contours_out] = contoursc3(gamma, val, varargin)
 	re_gamma = real(gamma);
 	im_gamma = imag(gamma);
 	[R, I] = meshgrid(linspace(min(re_gamma), max(re_gamma), num_real ), linspace( min(im_gamma), max(im_gamma), num_imag ));
+
+	% Remove points that are NaN
+	nan_idxs = isnan(val);
+	re_gamma(nan_idxs) = [];
+	im_gamma(nan_idxs) = [];
+	val(nan_idxs) = [];	
 	
 	% Interpolate the data in 'val' over the new grid
 	V = griddata(re_gamma, im_gamma, val, R, I);
