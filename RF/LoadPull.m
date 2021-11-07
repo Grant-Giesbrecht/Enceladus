@@ -1298,11 +1298,11 @@ classdef LoadPull < handle
 		%	See also: p_load, p_in
 			
 			% Check for optional arguments
-			if ~exists('units', 'var')
+			if ~exist('units', 'var')
 				units = "dBm";
 			end
 			
-			obj.p_load(units);
+			v = obj.p_load(units);
 			
 		end
 		
