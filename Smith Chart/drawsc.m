@@ -4,11 +4,15 @@ function ndrawn = drawsc(AH, scheme)
 		scheme = 'Light';
 	end
 	
+	% Dark window frame color
+	window_frame_color = [.1, .1, .17];
+	
 	if strcmp(scheme,'Light')
 		background_color = [240, 240, 240]./255;
+		window_frame_color = background_color;
 		legend_color = [1,1,1];
 	else
-		background_color = [240, 240, 240]./255;
+		background_color = window_frame_color;
 		legend_color = [.6, .6, .6];
 	end
 
@@ -31,6 +35,7 @@ function ndrawn = drawsc(AH, scheme)
 		%Turn background off
 		set(AH, 'visible', 'on');
 		set(AH, 'color', background_color);
+		set(gcf, 'color', window_frame_color);
 		fill = true;
 		
 		% Create legend, set color to white, hide until called back
