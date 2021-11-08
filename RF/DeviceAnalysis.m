@@ -14,17 +14,33 @@ classdef DeviceAnalysis < handle
 		% FOM pass.
 		fom_specs 
 		
+		% Name of device for plots
+		device_name
+		
 	end
 	
 	methods
 		
-		function obj = DeviceAnalysis(lp)			
+		function obj = DeviceAnalysis(lp, dev_name)			
+			
+			if ~exist("dev_name", 'var')
+				dev_name = "Unnamed Device";
+			end
+			
 			obj.lp = lp;
 			obj.lp_unmodified = lp.get(1:lp.numpoints());
 			
 			obj.fom_vs = {};
 			
 			obj.fom_specs = [];
+			
+			obj.device_name = dev_name;
+		end
+		
+		function ntrim = trimNonphysical(obj)
+			
+			ntrim = obj.lp.trimNonphysical();
+			
 		end
 		
 		function nfilt = filter(obj, varargin)
@@ -262,14 +278,25 @@ classdef DeviceAnalysis < handle
 			force0y;
 		end
 		
-		function vt_pae_vs_freq(obj)
-			vtplot(obj.lp, "PAE", "Freq", unique(obj.lp.freq()), "%", "GHz", 1e9, 1);
+		function f = vt_pae_vs_freq(obj)
+			f = vtplot(obj.lp, "PAE", "Freq", unique(obj.lp.freq()), "%", "GHz", 1e9, 1);
 			ylim([0, 100]);
 		end
 		
-		function vt_pout_vs_freq(obj)
-			vtplot(obj.lp, "Pload", "Freq", unique(obj.lp.freq()), "W", "GHz", 1e9, 3);
-			ylim([0, 5.5]);
+		function f = vt_pout_vs_freq(obj)
+			f = vtplot(obj.lp, "Pload", "Freq", unique(obj.lp.freq()), "W", "GHz", 1e9, 3);
+			ylo = ylim;
+			
+% 			ylim([0, 5.5]);
+			if ylo(2) < 10
+				ylim([0, 10]);
+			else
+				force0y;
+			end
+		end
+		
+		function lmfom(obj)
+			
 		end
 		
 	end
