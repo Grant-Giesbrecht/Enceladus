@@ -1,4 +1,4 @@
-function vtplot(lp, optimization_var, sweep_var, sweep_var_vals, unit_o_str, unit_s_str, sweep_divisor, figno)
+function f = vtplot(lp, optimization_var, sweep_var, sweep_var_vals, unit_o_str, unit_s_str, sweep_divisor, figno)
 % Value/Trajectory Plot
 % Both optimization_var and sweep_var must be filter-compatable names	
 
@@ -17,7 +17,7 @@ if ~exist('sweep_divisor', 'var')
 	lp_fig2 = lp.get(lp.listfilter(optimization_var, "MAX", sweep_var, sweep_var_vals', "MinMaxCount", 1));
 
 	%Show trajectory
-	figure(figno);
+	f = figure(figno);
 	subplot(1,2,1);
 	hold off
 	plotsc(gamma1, 'LineStyle', ':', 'Marker', '*', 'Scheme', 'Light', 'ColorVar', sweep_var_vals,'Color', [.9, .7, .5]);
