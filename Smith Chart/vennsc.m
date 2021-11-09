@@ -31,7 +31,8 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 		
 		% Plot contour
 		try
-			[h, cont_data] = contoursc(c.gamma, c.values, 'ContourLabel', c.labelstr, 'ContourLevels', c.venn_min, 'Color', c.color);
+			[h, cont_data] = xcontoursc(c.lp, c.values_str, 'ContourLabel', c.labelstr, 'ContourLevels', c.venn_min, 'Color', c.color);
+% 			[h, cont_data] = contoursc(c.gamma, c.values, 'ContourLabel', c.labelstr, 'ContourLevels', c.venn_min, 'Color', c.color);
 		catch
 			iarea = 0;
 			polyi = [];
