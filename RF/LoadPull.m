@@ -697,6 +697,33 @@ classdef LoadPull < handle
 		
 		end %======================== END ORGANIZE ========================
 
+		function lp_list = getAllDriveLPs(obj)
+			
+			%TODO: Make this general
+			
+			vgs_vals = unique(obj.props.iV_GS);
+			ip_vals = unique(obj.props.iPower);
+			f_vals = unique(obj.freq());
+			
+			templp = LoadPull();
+			lp_list = repmat(templp, 1, numel(vgs_vals)*numel(ip_vals)*numel(f_vals));
+			
+			% Loop through EVERYTHING
+			count = 1;
+			for vgs = vgs_vals
+				for ip = ip_vals
+					for f = f_vals
+						
+						% Filter and add to master list
+						newlp = obj.gfilter("Freq", f, "props.iPower", ip, "props.iV_GS", vgs);
+						lp_list(count) = newlp;
+						count = count + 1;
+					end
+				end
+			end
+			
+		end
+		
 		function lp = get(obj, idxs, varargin)
 		% GET Returns a LoadPull object with filtered data.
 		%
