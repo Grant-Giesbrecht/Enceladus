@@ -206,7 +206,7 @@ classdef DDFIO < handle
 		end %*********************************** END getHeader() **********
 
 		function setHeader(obj, hstr) %********** setHeader() *************
-			obj.header = hstr;
+			obj.header = linewrap(hstr);
 		end %*************************** END setHeader() ******************
 
 		function valid=isValidName(obj, name) %********** isValidName() *********
