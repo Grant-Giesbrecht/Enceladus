@@ -143,7 +143,7 @@ classdef DeviceAnalysis < handle
 			
 		end
 		
-		function venn_freq(obj, pae_spec, pout_spec, hidePlots)
+		function h = venn_freq(obj, pae_spec, pout_spec, hidePlots)
 			
 			freqs = unique(obj.lp.freq());
 			
@@ -175,23 +175,27 @@ classdef DeviceAnalysis < handle
 				lpfilt = obj.lp.get(obj.lp.filter("Freq", f));
 
 				% Create contour-spec classes
-				c1 = ContourSpec(lpfilt.gamma(), lpfilt.pae(), "PAE (%)", pae_spec, [], [0, .5, 0]); % PAE >= 50%
-				c2 = ContourSpec(lpfilt.gamma(), lpfilt.p_load(), "Pout (W)", pout_spec , [], [0, 0, .8]); %Pout >= 4,4W
+				c1 = ContourSpec(lpfilt.gamma(), lpfilt.pae(), "PAE (%)", pae_spec, [], [0, .5, 0], "PAE", lpfilt); % PAE >= 50%
+				c2 = ContourSpec(lpfilt.gamma(), lpfilt.p_load(), "Pout (W)", pout_spec , [], [0, 0, .8], "Pload", lpfilt); %Pout >= 4,4W
 
 				% Generate vennsc
 				hold off
-				[~,~,a] = vennsc([c1, c2], 'HidePlots', hidePlots);
+				[hn,~,a] = vennsc([c1, c2], 'HidePlots', hidePlots);
 % 				plotsc(lpfilt.gamma(), 'Scatter', true, 'Marker', '+', 'MarkerEdgeColor', [.6, 0, 0]);
 				obj.fom_vs.freq(count) = a;
 				legend('PAE', "P_{out}", 'Location', 'SouthEast');
 				title("Region: F="+string(f./1e9)+" GHz");
 
+				if ~isempty(hn)
+					h = hn;
+				end
+				
 				count = count + 1;
 			end
 			
 		end
 		
-		function fom_freq_vgs(obj, pae_spec, pout_spec)
+		function h=fom_freq_vgs(obj, pae_spec, pout_spec)
 			
 			if ~exist('pout_spec', 'var')
 				pout_spec = 3;
@@ -221,7 +225,7 @@ classdef DeviceAnalysis < handle
 			end
 			
 			figure(2);
-			surf(unique(obj.lp.freq())./1e9, vgs, fom_sweep);
+			h=surf(unique(obj.lp.freq())./1e9, vgs, fom_sweep);
 			xlabel("Frequency (GHz)");
 			ylabel("V_{GS} (V)");
 			zlabel("FOM");
@@ -229,7 +233,7 @@ classdef DeviceAnalysis < handle
 			
 		end
 		
-		function fom_freq_pin(obj, pae_spec, pout_spec)
+		function h=fom_freq_pin(obj, pae_spec, pout_spec)
 			
 			if ~exist('pout_spec', 'var')
 				pout_spec = 3;
@@ -259,7 +263,7 @@ classdef DeviceAnalysis < handle
 			end
 			
 			figure(4);
-			surf(unique(obj.lp.freq())./1e9, pin, fom_sweep);
+			h=surf(unique(obj.lp.freq())./1e9, pin, fom_sweep);
 			xlabel("Frequency (GHz)");
 			ylabel("P_{In} (dBm)");
 			zlabel("FOM");
@@ -267,10 +271,10 @@ classdef DeviceAnalysis < handle
 			
 		end
 		
-		function fom_freq(obj)
+		function h = fom_freq(obj)
 			figure(6);
 			hold off
-			plot(unique(obj.lp.freq())./1e9, obj.fom_vs.freq, 'LineStyle', '-.', 'Marker', '*', 'MarkerSize', 15, 'LineWidth', 1);
+			h = plot(unique(obj.lp.freq())./1e9, obj.fom_vs.freq, 'LineStyle', '-.', 'Marker', '*', 'MarkerSize', 15, 'LineWidth', 1);
 			xlabel("Frequency (GHz)");
 			ylabel("FOM (\Gamma^2)");
 			title("Figure of Merit over Frequency");
@@ -295,7 +299,152 @@ classdef DeviceAnalysis < handle
 			end
 		end
 		
-		function lmfom(obj)
+		function lmfom_freq(obj, save_img_video, vidpath, filename2)
+			
+			if ~exist('save_img_video', 'var')
+				save_img_video = false;
+			end
+			
+			if ~exist('vidpath', 'var')
+				vidpath = obj.device_name + 'LMFOM_vs_Freq.avi';
+			end
+			
+			% Get frequency points
+			freqs = unique(obj.lp.freq());
+			
+			lmfoms = zeros(1, numel(freqs));
+			
+			vid_frames = getframe(gcf);
+			vid_frames(1) = [];
+			
+			% Find LM-FOM at ea. Frequency Point
+			count = 0;
+			for f = freqs
+				
+				count = count + 1;
+				
+				% Create new DA object 
+				daf = obj.dupl();
+				
+				daf.filter("Freq", f); % Filter specific frequency
+				lmfoms(count) = daf.lmfom_overall(); % Calculate LM-FOM
+				zlabel("Load Modulation Figure of Merit (f = " + string(f./1e9) +" GHz)", 'color', [245, 196, 2]./255);
+				
+				% Save frame
+				vid_frames(count) = getframe(gcf);
+			end
+			
+			figure(2);
+			h = plot(freqs./1e9, lmfoms, 'LineStyle', ':', 'Marker', '+');
+			xlabel("Frequency (GHz)");
+			ylabel("LM-FOM");
+			title("Load Modulation Figure of Merit");
+			grid on;
+			force0y;
+			
+			if save_img_video
+				
+				% create the video writer with 1 fps
+				vw = VideoWriter(vidpath);
+				vw.FrameRate = 2;
+				
+				open(vw);
+				for fi = 1:numel(vid_frames)
+					writeVideo(vw, vid_frames(fi));
+				end
+				close(vw);
+				
+				saveas(h, filename2);
+			end
+			
+		end
+		
+		function [lmfom, h] = lmfom_overall(obj, useDark)
+
+			if ~exist('useDark', 'var')
+				useDark = true;
+			end
+			
+			% Find point of maximum Pout
+			lp_Pmax = obj.lp.gfilter("Pload", "MAX");
+
+			P_max = unique(lp_Pmax.p_out());
+			P_OBO = P_max - 3;
+
+			% Plot 6 dB Contour
+			figure(1);
+			hold off;
+			if useDark
+				plotsc(lp_Pmax.gamma(), 'Marker', '*', 'Scheme', 'Dark', 'Color', [200, 0, 255]./255);
+			else
+				plotsc(lp_Pmax.gamma(), 'Marker', '*', 'Scheme', 'Light', 'Color', [200, 0, 255]./255, 'MarkerSize', 8);
+			end
+			hold on;
+			% contoursc3(lp.gamma(), lp.p_out(), 'HeightMax', 1, 'Color', [.9, .7, .7]);
+			if useDark
+				h1 = xcontoursc3(obj.lp, "Pload", 'HeightMax', 1, 'Color', [2, 103, 245]./255, 'ContourLevels', .5:.5:3, 'Scheme', 'Dark');
+			else
+				h1 = xcontoursc3(obj.lp, "Pload", 'HeightMax', 1, 'Color', [0, .2, .8], 'ContourLevels', .5:.5:3, 'Scheme', 'Light');
+			end
+			% [h, cont_data] = contoursc(lp.gamma(), lp.p_out(), 'ContourLabel', "P_{Out} (dBm)", 'ContourLevels', P_OBO, 'Color', [ 68, 255, 0]./255);
+			try
+				if useDark
+					[h, cont_data] = xcontoursc(obj.lp, "PAE", 'ContourLabel', "P_{Out} (dBm)", 'ContourLevels', P_OBO, 'Color', [ 68, 255, 0]./255);
+				else
+					[h, cont_data] = xcontoursc(obj.lp, "PAE", 'ContourLabel', "P_{Out} (dBm)", 'ContourLevels', P_OBO, 'Color', [ .8, 0, 0], 'LineWidth', 1.7);
+				end
+			catch
+				h = h1;
+				lmfom = 0;
+				return;
+			end
+			% [h, cont_data] = contoursc(lp.gamma(), lp.p_out(), 'ContourLabel', "P_{Out} (dBm)", 'ContourLevels', 32, 'Color', [ 68, 255, 0]./255);
+
+			% Merge all gammas (only used if multiple contours returned)
+			all_gammas = [];
+			for cdi = 1:numel(cont_data)
+				all_gammas = [all_gammas, cont_data(cdi).gamma];
+			end
+			
+			% Find VSWRs
+			Z_opt = G2Z(lp_Pmax.gamma()); % Find Z of max power point
+			swrs = zeros(1, numel(cont_data.gamma));
+			count = 0;
+			try
+				for g = all_gammas
+					count = count + 1;
+
+					Z_obo = G2Z(g); % FInd Z of contour point
+					renorm_gamma = Z2G(Z_obo, Z_opt); % Find reflection coeff, norm to max power Z
+					swrs(count) = vswr(renorm_gamma); % Find VSWR 
+				end
+			catch
+				disp();
+			end
+			
+			% Convert VSWRs to a scaled FOM
+			func_fom = @(v) 1./(v-1); % Normalized to VSWR=2, Approaches inf as nears 1 (min VSWR)
+			swr_scaled = func_fom(swrs); % Calculate load modulation figure of merit
+
+			% PLot Load modulation Figure of Merit
+			lmfom = sum(swr_scaled);
+			swr_norm = swr_scaled/max(swr_scaled);
+
+			try
+				if useDark
+					h = plotsc3(all_gammas, swr_norm, 'Color', [200, 0, 255]./255);
+				else
+					h = plotsc3(all_gammas, swr_norm, 'Color', [0, 0.6, 0], 'LineWidth', 1.7);
+				end
+			catch
+				displ();
+			end
+			
+			if useDark
+				zlabel("Load Modulation Figure of Merit", 'color', [245, 196, 2]./255);
+			else
+				zlabel("Load Modulation Figure of Merit", 'color', [0, 0, 0]);
+			end
 			
 		end
 		
