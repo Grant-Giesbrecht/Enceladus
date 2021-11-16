@@ -12,11 +12,13 @@ classdef ContourSpec < handle
 		
 		color % Color to plot contours
 		
+		values_str
+		lp
 	end
 	
 	methods
 		
-		function obj = ContourSpec(gamma, values, labelstr, venn_min, venn_max, color)
+		function obj = ContourSpec(gamma, values, labelstr, venn_min, venn_max, color, values_str, lp)
 			obj.gamma = gamma;
 			obj.values = values;
 			
@@ -34,6 +36,14 @@ classdef ContourSpec < handle
 			
 			if exist('color', 'var')
 				obj.color = color;
+			end
+			
+			if exist('values_str', 'var')
+				obj.values_str = values_str;
+			end
+			
+			if exist('lp', 'var')
+				obj.lp = lp;
 			end
 		end
 		
