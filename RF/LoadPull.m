@@ -710,6 +710,7 @@ classdef LoadPull < handle
 			
 			% Loop through EVERYTHING
 			count = 1;
+			delete_idxs = [];
 			for vgs = vgs_vals
 				for ip = ip_vals
 					for f = f_vals
@@ -717,10 +718,16 @@ classdef LoadPull < handle
 						% Filter and add to master list
 						newlp = obj.gfilter("Freq", f, "props.iPower", ip, "props.iV_GS", vgs);
 						lp_list(count) = newlp;
+						if newlp.numpoints() < 1
+							delete_idxs(end+1) = count;
+						end
 						count = count + 1;
 					end
 				end
 			end
+			
+			% Delete empty LPs
+			lp_list(delete_idxs) = [];
 			
 		end
 		
@@ -1326,7 +1333,7 @@ classdef LoadPull < handle
 			
 			% Check for optional arguments
 			if ~exist('units', 'var')
-				units = "dBm";
+				units = "W";
 			end
 			
 			v = obj.p_load(units);
