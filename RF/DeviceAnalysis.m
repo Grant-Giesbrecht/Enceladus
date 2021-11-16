@@ -406,6 +406,10 @@ classdef DeviceAnalysis < handle
 				all_gammas = [all_gammas, cont_data(cdi).gamma];
 			end
 			
+			if numel(cont_data.gamma) > 1e6
+				displ("")
+			end
+			
 			% Find VSWRs
 			Z_opt = G2Z(lp_Pmax.gamma()); % Find Z of max power point
 			swrs = zeros(1, numel(cont_data.gamma));
@@ -444,6 +448,170 @@ classdef DeviceAnalysis < handle
 				zlabel("Load Modulation Figure of Merit", 'color', [245, 196, 2]./255);
 			else
 				zlabel("Load Modulation Figure of Merit", 'color', [0, 0, 0]);
+			end
+			
+		end
+		
+		function [freqs, lmfoms, deltas] = lmpaefom_freq(obj, showIntermediatePlots, alpha, beta, delta, figno)
+			
+			if ~exist('showIntermediatePlots', 'var')
+				showIntermediatePlots = true;
+			end
+			
+			if ~exist("alpha", 'var')
+				alpha = 5; % Number of top PAEs to skip (as outliers)
+			end
+			
+			if ~exist('beta', 'var')
+				beta = 3; % Percent from top PAE to accept as 'max' PAE points
+			end
+			
+			if ~exist('delta', 'var')
+				delta = .2; % Tolerance in Watts for 6 dB OBO
+			end
+			
+			if ~exist('figno', 'var')
+				figno = 2;
+			end
+			
+			% Get frequency points
+			freqs = unique(obj.lp.freq());
+			
+			lmfoms = zeros(1, numel(freqs));
+			deltas = zeros(1, numel(freqs));
+			
+			count = 0;
+			for f = freqs
+				
+				count = count + 1;
+				
+				obj.filter("Freq", f);
+				[lmfoms(count), deltas(count)] = obj.lmpaefom_overall(showIntermediatePlots, alpha, beta, delta);
+				
+				
+				obj.reset();
+			end
+			
+			figure(figno);
+% 			yyaxis left;
+			plot(freqs./1e9, lmfoms, 'LineStyle', ':', 'Marker', '+', 'Color', [0, 0, .6], 'LineWidth', 1, 'MarkerSize', 7);
+% 			yyaxis right;
+% 			scatter(freqs./1e9, deltas, 60, 'Marker', '+', 'MarkerEdgeColor', [.6, 0, 0]);
+			grid on;
+			ylabel("FOM (%)");
+			title("PAE Load Modulation FOM");
+			xlabel("Frequency (GHz)");
+		end
+		
+		function [FOM, deltaused] = lmpaefom_overall(obj, showPlot, alpha, beta, delta, autoDelta)
+			% Give a single LM-PAE-FOM value for all points in the DA
+			
+			if ~exist('showPlot', 'var')
+				showPlot = true;
+			end
+			
+			if ~exist("alpha", 'var')
+				alpha = 5; % Number of top PAEs to skip (as outliers)
+			end
+			
+			if ~exist('beta', 'var')
+				beta = 3; % Percent from top PAE to accept as 'max' PAE points
+			end
+			
+			if ~exist('delta', 'var')
+				delta = .2; % Tolerance in Watts for 6 dB OBO
+			end
+			
+			if ~exist('autoDelta', 'var')
+				autoDelta = true;
+			end
+
+			deltaused = delta;
+			
+			% Find max power, find 6 dB OBO
+			max_power = max(obj.lp.p_out());
+			P_obo = max_power - [6+delta, 6-delta];
+			displ("Max power: ", max_power);
+			displ("Pobo: [", P_obo(1), ", ", P_obo(2), "]");
+			lp_Pmax = obj.lp.gfilter("Pload", "MAX");
+
+			% Filter out points at 6 dB OBO
+			lp_obo = obj.lp.gfilter("Pload", P_obo);
+			
+			if lp_obo.numpoints() < 1
+				if ~autoDelta
+					FOM = -1;
+					return;
+				else
+					bcount = 2;
+					while lp_obo.numpoints() < 1
+						P_obo = max_power - [6+delta*bcount, 6-delta*bcount];
+						lp_obo = obj.lp.gfilter("Pload", P_obo);
+						bcount = bcount + 1;
+					end
+					deltaused = delta*bcount;
+				end
+			end
+
+			% Find target PAE
+			PAEs = sort(lp_obo.pae());
+			if alpha < numel(PAEs)
+				max_PAE = PAEs(end-alpha);
+			else
+				max_PAE = max(PAEs);
+			end
+			target_PAE = max_PAE - beta;
+			displ("   Absolute max OBO PAE, including outliers: ", PAEs(end));
+			displ("   Max PAE after removing 'alpha' outliers: ", max_PAE);
+			displ("   Target PAE after adding tolerance of 'beta': ", target_PAE);
+
+			% Filter points meeting 'max PAE' condition
+			lp_maxs = lp_obo.gfilter("PAE", [target_PAE, NaN]);
+
+			% Calculate VSWR relative to MPP
+			Znorm = G2Z(lp_Pmax.gamma());
+			Zs = G2Z(lp_maxs.gamma());
+			Gnorm = Z2G(Zs, Znorm);
+			Vnorm = vswr(Gnorm);
+
+			% Find point with lowest VSWR
+			min_VSWR = min(Vnorm);
+			idx = find(Vnorm == min_VSWR);
+
+			% Find FOM
+			PAEs_maxs = lp_maxs.pae();
+			FOM = PAEs_maxs(idx)/min_VSWR;
+
+			displ("FOM: (", PAEs_maxs(idx), ")/(", min_VSWR, ") = ", FOM );
+			
+			if showPlot
+				figure(1);
+				subplot(2, 2, 1);
+				hold off
+				plotsc(lp_obo.gamma(), 'Scatter', true, 'Marker', '+', 'MarkerEdgeColor', [.6, 0, 0]);
+				hold on;
+				plotsc(lp_Pmax.gamma(), 'Scatter', true, 'Marker', '*', 'MarkerEdgeColor', [0, 0, .6]);
+				title("Points meeting 6 dB OBO Condition");
+
+				% Show histogram of selected PAEs
+				subplot(2, 2, 2);
+				hold off
+				hist(lp_obo.pae());
+				vlin(target_PAE, 'LineStyle', '--', 'Color', [.6, 0, 0], 'LineWidth', 1);
+				vlin(max_PAE, 'LineStyle', '--', 'Color', [.2, .2, .2], 'LineWidth', 1);
+				grid on;
+				title("PAE Histogram");
+				xlabel("PAE (%)");
+				ylabel("Number of Points");
+
+				subplot(2, 2, 3);
+				hold off
+				plotsc(lp_maxs.gamma(), 'Scatter', true, 'Marker', '+', 'MarkerEdgeColor', [.6, 0, 0]);
+				hold on
+				plotsc(lp_Pmax.gamma(), 'Scatter', true, 'Marker', '*', 'MarkerEdgeColor', [0, 0, .6]);
+				maxs_gammas = lp_maxs.gamma();
+				plotsc(maxs_gammas(idx), 'Scatter', true, 'Marker', 'o', 'MarkerEdgeColor', [0, .3, 0], 'MSizes', 60);
+				title("Points meeting 6 dB OBO and max PAE Condition");
 			end
 			
 		end
