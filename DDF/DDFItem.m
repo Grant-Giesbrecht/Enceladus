@@ -72,7 +72,7 @@ classdef DDFItem < handle
 			
 			% Recalculate value string if needed
 			try
-				if obj.valstr_value ~= obj.val
+				if isempty(obj.valstr_value) || obj.valstr_value ~= obj.val
 					obj.calcValueStr();
 				end
 			catch
