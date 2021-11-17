@@ -105,7 +105,7 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 			% Check source file name if possible
 			loaded_mat = true;
 			if isfield(S, 'file2loadpull_sourcefile_check')
-				if ~strcmpi(S.file2loadpull_sourcefile_check, filename)
+				if ~strcmpi(strrep(S.file2loadpull_sourcefile_check, "\", "/"), strrep(filename, "\", "/"))
 					displ("  Source file verification: FAILED");
 					loaded_mat = false;
 					overwriteMAT = true;
