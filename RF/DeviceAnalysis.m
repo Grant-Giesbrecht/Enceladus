@@ -304,7 +304,7 @@ classdef DeviceAnalysis < handle
 			end
 		end
 		
-		function lmfom_freq(obj, save_img_video, vidpath, filename2)
+		function [freqs, lmfoms] = lmfom_freq(obj, save_img_video, vidpath, filename2)
 			
 			if ~exist('save_img_video', 'var')
 				save_img_video = false;
@@ -411,13 +411,15 @@ classdef DeviceAnalysis < handle
 				all_gammas = [all_gammas, cont_data(cdi).gamma];
 			end
 			
-			if numel(cont_data.gamma) > 1e6
-				displ("")
-			end
+% 			if numel(cont_data.gamma) > 1e6
+% 				displ("")
+% 			end
 			
 			% Find VSWRs
 			Z_opt = G2Z(lp_Pmax.gamma()); % Find Z of max power point
-			swrs = zeros(1, numel(cont_data.gamma));
+			swrs = zeros(1, numel(all_gammas));
+
+		
 			count = 0;
 			try
 				for g = all_gammas
