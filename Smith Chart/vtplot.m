@@ -30,12 +30,12 @@ if ~exist('sweep_divisor', 'var')
 	% Show PAE
 	subplot(1,2,2);
 	hold off
-	errorbar(sweep_var_vals./sweep_divisor, pae1, stdev2, 'Marker', 'o', 'LineStyle', '--', 'LineWidth', 1.0, 'MarkerSize', 10);
+	errorbar(sweep_var_vals./sweep_divisor, pae1, stdev2, 'Marker', 'o', 'LineStyle', '--', 'LineWidth', 1.5, 'MarkerSize', 10);
 	hold on;
 	
 	[s_sv, I] = sort(lp_fig2.getArrayFromName(sweep_var));
 	ov_v = lp_fig2.getArrayFromName(optimization_var);
-	plot(s_sv./sweep_divisor, ov_v(I), 'Marker', '*', 'LineStyle', '--', 'LineWidth', 1.0, 'MarkerSize', 15);
+	plot(s_sv./sweep_divisor, ov_v(I), 'Marker', '*', 'LineStyle', '--', 'LineWidth', 1.5, 'MarkerSize', 15);
 	grid on
 	legend('Average of 10', 'Max', 'Location', 'SouthEast');
 	ylabel("Max " + optimization_var +" ("+unit_o_str+")");
