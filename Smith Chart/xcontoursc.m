@@ -58,6 +58,10 @@ function [h, contours_out] = xcontoursc(lp, val_name, varargin)
 		% Get load pull object from list
 		lpi = lp_list(lpidx);
 
+		if lpi.numpoints() < 3
+			continue;
+		end
+		
 		% Get gamma points
 		gamma = lpi.gamma();
 		
@@ -184,13 +188,13 @@ function [h, contours_out] = xcontoursc(lp, val_name, varargin)
 			pits = holes(shape_union);
 			for nsi = 1:numel(regs)
 				master_levels(end+1) = level; % Add to master level
-				master_contours(end+1) = rmholes(regs(nsi)); % Add to master shapes and remove holes
+				master_contours(end+1) = simplify(rmholes(regs(nsi)), 'KeepCollinearPoints', false); % Add to master shapes and remove holes
 				master_holeType(end+1) = false; % Specify as region
 			end
 			
 			for psi = 1:numel(pits)
 				master_levels(end+1) = level; % Add to master 
-				master_contours(end+1) = pits(psi); % Add to master shapes
+				master_contours(end+1) = simplify(pits(psi), 'KeepCollinearPoints', false); % Add to master shapes
 				master_holeType(end+1) = true; % Specify as hole
 			end
 			
