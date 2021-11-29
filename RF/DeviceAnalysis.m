@@ -282,6 +282,11 @@ classdef DeviceAnalysis < handle
 			force0y;
 		end
 		
+		function f = vt_pae_vs_pin(obj)
+			f = vtplot(obj.lp, "PAE", "props.Pin_dBm", unique(obj.lp.props.Pin_dBm), "%", "dBm", 1, 1);
+			ylim([0, 100]);
+		end
+		
 		function f = vt_pae_vs_freq(obj)
 			f = vtplot(obj.lp, "PAE", "Freq", unique(obj.lp.freq()), "%", "GHz", 1e9, 1);
 			ylim([0, 100]);
