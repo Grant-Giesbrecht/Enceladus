@@ -1,5 +1,16 @@
 function [R,L,C] = comp2pall(z, f)
-	
+% Computes a parallel circuit that provides the given complex impedance
+%
+% Computes a combination of parallel resistor, capacitor, and inductors
+% that results in the specified complex impedance at the frequency f.
+%
+%	[R, L, C] = COMP2PALL(z, f) Populates R, L, and C with the element
+%	values that result in the impedance z at frequency f. Prints the result
+%	to the command line as well.
+%
+% See also Zc, Zl.
+
+
 	j = sqrt(-1);
 
 	if real(z) ~= 0
