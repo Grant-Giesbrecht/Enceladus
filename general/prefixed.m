@@ -26,6 +26,13 @@ function [tf, mult, unit]=prefixed(str, base)
 	
 	base_len = numel(base);
 
+	% Check for base too long
+	if base_len > numel(str)
+		tf = false;
+		mult = 0;
+		return;
+	end
+	
 	% Check for base mismatch
 	if ~strcmp(str(end-base_len+1:end), base)
 		tf = false;
@@ -89,6 +96,10 @@ function [tf, mult, unit]=prefixed(str, base)
 		return;
 	elseif strcmp(prefix, "a")
 		mult = 1e-18;
+		tf = true;
+		return;
+	elseif strcmp(prefix, "z")
+		mult = 1e-21;
 		tf = true;
 		return;
 	end
