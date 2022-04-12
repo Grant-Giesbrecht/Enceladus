@@ -13,11 +13,21 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 %	allows the user to indicate the name of objects to look for in the
 %	workspace. Allows ID to replace the default value, the filename with
 %	the extension removed.
-
+%
+%
+%	NAME: Refresh
+%	DESCRIPTION: Forces refresh of data by reading MDF source file. Will
+%	ignore data previously loaded into workspace or saved to MAT files, and
+%	will overwrite any existing MAT file with the data read from the MDF
+%	file. Use this option if the contents of the MDF file change from the
+%	last call to this function.
+%	DEFAULT: False
+%		
 	p = inputParser;
 	p.addParameter("ID", [], @(x) isstring(x) || ischar(x));
 	p.addParameter("RemoveHarmonics", true, @islogical);
 	p.addParameter("LoadMAT", true, @islogical);
+	p.addParameter("Refresh", false, @islogical);
 	p.addParameter("MATFilename", "", @(x) isstring(x) || ischar(x));
 	p.parse(varargin{:});
 
@@ -46,6 +56,9 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	end
 	
 	% Check if LoadPull object already exists
+	%
+	% If it exists, function will evaluate if object matches specified file
+	% If it does not exist, function will try to read MDF file. 
 	load_lp = false;
 	try
 		lp = evalin('base', strcat('lp_', ID));
@@ -54,7 +67,7 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	end
 	
 	% Return LoadPull object from workspace if present
-	if ~load_lp	
+	if ~load_lp	&& ~p.Results.Refresh
 		if ~silent
 			displ("LoadPull object found. Returning existing object.");
 		end
@@ -75,6 +88,9 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	end
 	
 	% Determine if a MDF file object exists that matches this file
+	%
+	% If MDF object matches file, flag to read MDF file will not be set
+	% If MDF object does not match, flag to read MDF file will be set
 	load_mdf = false;
 	try
 		mdf_file = evalin('base', strcat('mdf_', ID));
@@ -86,9 +102,11 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	end
 	
 	% Determine if a MAT file exists that matches this file
+	%
+	% If so, will load data from it instead of MDF (if p.Results.LoadMAT is true)
 	loaded_mat = false;
 	overwriteMAT = false;
-	if load_mdf && isfile(MATfn) && p.Results.LoadMAT
+	if load_mdf && isfile(MATfn) && p.Results.LoadMAT && ~p.Results.Refresh
 		
 		t0 = tic;
 		displ("Reading MAT file '", MATfn, "'.");
@@ -125,7 +143,7 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	end
 	
 	% Load MDF file if required
-	if load_mdf 
+	if load_mdf || p.Results.Refresh
 
 		mdf_file = AWRLPmdf;
 		mdf_file.debug = false;
@@ -165,7 +183,7 @@ function [lp, t_read, t_extract] = file2loadpull(filename, varargin)
 	end
 	
 	% Save MAT file if specified
-	if p.Results.LoadMAT && (~isfile(MATfn) || overwriteMAT)
+	if (p.Results.LoadMAT && (~isfile(MATfn) || overwriteMAT)) || p.Results.Refresh
 		file2loadpull_sourcefile_check = filename;
 		t0 = tic;
 		save(MATfn, 'lp', 'file2loadpull_sourcefile_check');
