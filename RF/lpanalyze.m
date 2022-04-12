@@ -1,4 +1,17 @@
 function lp = lpanalyze(filename, refresh)
+% LPANALYZE Plot Load Pull data from an MDF File
+%
+% Accepts an MDF filename as an input and plots the data. Note that it uses
+% file2loadpull to minimize number of MDF reads, so if the data in the MDF
+% file changes, use the refresh flag to force the data to be reloaded.
+%
+%	LP = LPANALYZE(filename) Plot the data in the specified MDF file and
+%	return a LoadPull object.
+%
+%	LP = LPANALYZE(filename, refresh) If refresh is true, forces the MDF file
+%	to be read and overwrites any backup MAT file.
+%
+% See also: file2loadpull, LoadPull
 
 	if ~exist("refresh", "var")
 		refresh = false;
