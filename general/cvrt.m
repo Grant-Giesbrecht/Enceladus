@@ -35,6 +35,14 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 		quant = "POWER";
 		[~,mult,~]=prefixed(units0, "hp"); % Get multiplier
 		val_si = val.*745.699872; % Mechanical/hydraulic horsepower
+	elseif prefixed(units0, "blake") % Blake
+		quant = "POWER";
+		[~,mult,~]=prefixed(units0, "blake"); % Get multiplier
+		val_si = val.*1800;
+	elseif prefixed(units0, "dBmtb") % Blake
+		quant = "POWER";
+		[~,mult,~]=prefixed(units0, "blake"); % Get multiplier
+		val_si = dB2lin(val, 10).*1800;	
 	elseif strcmp(units0, "C") %------- Temperature Units ---------
 		quant = "TEMPERATURE";
 		val_si = val+273.15;
@@ -125,6 +133,12 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 	elseif strcmp(units0, "fps")
 		quant = "SPEED";
 		val_si = val.*.3048;
+	elseif strcmp(units0, "min/mi")
+		quant = "SPEED";
+		val_si = 60./val.*.44704;
+	elseif strcmp(units0, "min/km")
+		quant = "SPEED";
+		val_si = 60./val.*.277778;
 	else
 		error("Unit " + units0 + " not recognized.");
 	end
@@ -153,6 +167,17 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 			error("Cannot convert units of " + quant + " to units of POWER.");
 		end
 		valf = val_si.*.00134102;
+	elseif strcmp(unitsf, "blake")
+		if ~strcmp(quant, "POWER")
+			error("Cannot convert units of " + quant + " to units of POWER.");
+		end
+		[~,mult,~]=prefixed(unitsf, "blake"); % Get multiplier
+		valf = val_si./1800./mult;
+	elseif strcmp(unitsf, "dBmtb")
+		if ~strcmp(quant, "POWER")
+			error("Cannot convert units of " + quant + " to units of POWER.");
+		end
+		valf = lin2dB(val_si./1800, 10);
 	elseif strcmp(unitsf, "C") %---------- Temperature Units -------------
 		if ~strcmp(quant, "TEMPERATURE")
 			error("Cannot convert units of " + quant + " to units of TEMPERATURE.");
@@ -279,12 +304,12 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 		if ~strcmp(quant, "SPEED")
 			error("Cannot convert units of " + quant + " to units of SPEED.");
 		end
-		valf = val_si./277778;
+		valf = val_si./.277778;
 	elseif strcmp(unitsf, "mph") 
 		if ~strcmp(quant, "SPEED")
 			error("Cannot convert units of " + quant + " to units of SPEED.");
 		end
-		valf = val_si./44704;
+		valf = val_si./.44704;
 	elseif strcmp(unitsf, "kt") || strcmp(unitsf, "kn")
 		if ~strcmp(quant, "SPEED")
 			error("Cannot convert units of " + quant + " to units of SPEED.");
@@ -295,24 +320,35 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 			error("Cannot convert units of " + quant + " to units of SPEED.");
 		end
 		valf = val_si./3048;
+	elseif strcmp(unitsf, "min/km")
+		if ~strcmp(quant, "SPEED")
+			error("Cannot convert units of " + quant + " to units of SPEED.");
+		end
+		valf = 1./(val_si./.277778./60);
+	elseif strcmp(unitsf, "min/mi")
+		if ~strcmp(quant, "SPEED")
+			error("Cannot convert units of " + quant + " to units of SPEED.");
+		end
+		valf = 1./(val_si./.44704./60);
 	
-
-	elseif prefixed(units0, "m/s") %----------- Speed ---------
-		quant = "SPEED";
-		[~,mult,~]=prefixed(units0, "m/s"); % Get multiplier
-		val_si = val.*mult;
-	elseif strcmp(units0, "kph")
-		quant = "SPEED";
-		val_si = val.*.277778;
-	elseif strcmp(units0, "mph")
-		quant = "SPEED";
-		val_si = val.*.44704;
-	elseif strcmp(units0, "kt") || strcmp(units0, "kn")
-		quant = "SPEED";
-		val_si = val.*.514444;
-	elseif strcmp(units0, "fps")
-		quant = "SPEED";
-		val_si = val.*.3048;
+% 
+% 	elseif prefixed(units0, "m/s") %----------- Speed ---------
+% 		quant = "SPEED";
+% 		[~,mult,~]=prefixed(units0, "m/s"); % Get multiplier
+% 		val_si = val.*mult;
+% 	elseif strcmp(units0, "kph")
+% 		quant = "SPEED";
+% 		val_si = val.*.277778;
+% 	elseif strcmp(units0, "mph")
+% 		quant = "SPEED";
+% 		val_si = val.*.44704;
+% 	elseif strcmp(units0, "kt") || strcmp(units0, "kn")
+% 		quant = "SPEED";
+% 		val_si = val.*.514444;
+% 	elseif strcmp(units0, "fps")
+% 		quant = "SPEED";
+% 		val_si = val.*.3048;
+	
 	else
 		error("Unit " + unitsf + " not recognized.");
 	end
