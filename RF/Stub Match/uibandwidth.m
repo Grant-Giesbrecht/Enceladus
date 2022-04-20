@@ -169,6 +169,9 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 			plot(ha_list(idx2), freqs./1e9, lin2dB(abs(ss(idx2+(page_no-1)*nplots).G_in())));
 			hold(ha_list(idx2), "on");
 			
+			% Calculate bandwidth
+			[bw, f0, f1]=ss(idx2+(page_no-1)*nplots).bandwidth( "Absolute", optBW_param);
+			
 			% Add labels
 			xlabel(ha_list(idx2), "Frequency (GHz)");
 			ylabel(ha_list(idx2), "S-Parameter (dB)");
@@ -180,14 +183,9 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 					plot_title = plot_title + "O";
 				end
 			end
-			plot_title = plot_title + "]";
+			plot_title = plot_title + "], BW = " + num2fstr(bw/1e9) + " GHz";
+			
 			title(ha_list(idx2), plot_title);
-			
-			
-			% Calculate BW
-			
-			% Calculate bandwidth
-			[bw, f0, f1]=ss(idx2+(page_no-1)*nplots).bandwidth( "Absolute", optBW_param);
 			
 			% Plot Bandwidth Region
 			if ~isempty(bw)
