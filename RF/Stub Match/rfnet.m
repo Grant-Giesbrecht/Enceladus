@@ -6,6 +6,7 @@ classdef rfnet < handle
 		name
 		ZL
 		ZS
+		ID % Used to ID different nets when considering multiple
 	end
 	methods
 		function obj = rfnet(rfm, ZS, ZL)
@@ -15,6 +16,7 @@ classdef rfnet < handle
 			obj.name = "RF Network";
 			obj.ZS = ZS;
 			obj.ZL = ZL;
+			obj.ID = -1; 
 		end
 		function add(obj, rfn)
 			
@@ -209,7 +211,7 @@ classdef rfnet < handle
 			end
 			
 			bw = max(BWs);
-			idx = find(BWs == bw);
+			idx = find(BWs == bw, 1, 'last');
 			f_lo = obj.freqs( pairs(idx, 1) );
 			f_hi = obj.freqs( pairs(idx, 2) );
 			
@@ -229,17 +231,26 @@ classdef rfnet < handle
 		function [out, mt] = str(obj, title)
 			
 			if ~exist('title', 'var')
-				title = obj.name;
+				if obj.ID ~= -1
+					title = "Circuit No. " + num2str(obj.ID);
+				else
+					title = obj.name;
+				end
 			end
 			
 			mt = MTable;
 			mt.row(["Index", "Type", "Z0 (ohms)", "f0 (MHz)", "Length (deg)"]);
 			
 			count = 0;
+			mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS), "N/A", "N/A"]);
+			count = count + 1;
 			for m = obj.mats
 				count = count + 1;
 				mt.row([num2str(count), m.desc.type, num2str(m.desc.Z0), num2str(m.desc.f0./1e6), num2str(m.desc.len_d)]);
 			end
+			count = count + 1;
+			mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL), "N/A", "N/A"]);
+			
 			
 			mt.title(title);
 			mt.alignc(2, 'l');
