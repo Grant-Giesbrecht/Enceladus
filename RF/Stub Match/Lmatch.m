@@ -29,6 +29,7 @@ function solns = Lmatch(Zin, Zload, Zline, Zstub, freqs, f0)
 	net1.add(line1);
 % 	net1.add(port_match);
 	net1.name = "SSTUB No.1";
+	net1.ID = 1;
 	solns = net1;
 	
 	if num_soln > 1
@@ -39,6 +40,7 @@ function solns = Lmatch(Zin, Zload, Zline, Zstub, freqs, f0)
 		net2.add(line2);
 	% 	net2.add(port_match);
 		net2.name = "SSTUB No.2";
+		net2.ID = 2;
 		solns(end+1) = net2;
 	end
 		
@@ -49,6 +51,7 @@ function solns = Lmatch(Zin, Zload, Zline, Zstub, freqs, f0)
 	net3.add(line3);
 % 	net3.add(port_match);
 	net3.name = "OSTUB No.1";
+	net3.ID = 3;
 	solns(end+1) = net3;
 	
 	if num_soln > 1
@@ -59,6 +62,7 @@ function solns = Lmatch(Zin, Zload, Zline, Zstub, freqs, f0)
 		net4.add(line4);
 	% 	net4.add(port_match);
 		net4.name = "OSTUB No.2";
+		net4.ID = 4;
 		solns(end+1) = net4;
 	end	
 	
