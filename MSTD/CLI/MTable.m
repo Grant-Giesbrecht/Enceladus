@@ -280,8 +280,8 @@ classdef MTable < handle
 			end
 
 			% If not enough room for title
-			if length(obj.titlestr) > title_space
-				extra = length(obj.titlestr) - title_space;
+			if length(char(obj.titlestr)) > title_space
+				extra = length(char(obj.titlestr)) - title_space;
 
 				cc = 0;
 				while extra > 0
