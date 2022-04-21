@@ -17,5 +17,16 @@ function vlin(x, varargin)
 		varargin{end+1} = 'off';
 	end
 	
-    line([x, x], [yl(1), yl(2)], varargin{:});
+	p = inputParser;
+	p.KeepUnmatched = true;
+	p.addParameter('Ax', gca, @(x) isa(x, 'matlab.graphics.axis.Axes') || isa(x, 'matlab.graphics.GraphicsPlaceholder'));
+	p.parse(varargin{:});
+	
+	ax = p.Results.Ax;
+	
+	% Get plot arguments
+    tmp = [fieldnames(p.Unmatched),struct2cell(p.Unmatched)];
+    plotArgs = reshape(tmp',[],1)';
+	
+    line(ax, [x, x], [yl(1), yl(2)], plotArgs{:});
 end
