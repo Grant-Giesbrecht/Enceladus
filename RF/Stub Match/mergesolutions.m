@@ -1,8 +1,21 @@
-function ssa = mergesolutions(ss1, ss2)
+function ssa = mergesolutions(ss1, ss2, is_recursive, varargin)
+
+	% Add default state to is_recursive option
+	if ~exist('is_recursive', 'var')
+		is_recursive = false;
+	end
 
 	% Initialize output array
 	ssa = ss1(1);
 	ssa(1) = [];
+	
+	% Get list of IDs
+	all_ids = zeros(1, numel(ss1)+numel(ss2));
+	idx = 1;
+	for s = [ss1, ss2]
+		all_ids(idx) = s.ID;
+		idx = idx + 1;
+	end
 	
 	% Scan over all permutations
 	for s1 = ss1 
@@ -20,8 +33,12 @@ function ssa = mergesolutions(ss1, ss2)
 				newnet.add(s2.mats(i));
 			end
 			
+			% Update ID
+			newnet.ID = max(all_ids)+1;
+			all_ids(end+1) = newnet.ID;
+			
 			% Update name
-			newnet.name = "[S1: " + s1.name + "] to [S2: " + s2.name+"]";
+			newnet.name = "[S1: " + s1.name + "] -> [S2: " + s2.name+"]";
 			
 			% Push back
 			ssa(end+1) = newnet;
