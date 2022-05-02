@@ -15,6 +15,8 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 	p.addParameter("BWCutoff", -20, @isnumeric);
 	p.addParameter("Zline", 50, @isnumeric);
 	p.addParameter("Zstub", 50, @isnumeric);
+	p.addParameter("e_r", NaN, @isnumeric); % epsilon rel. for substrate
+	p.addParameter("d", NaN, @isnumeric); % Height of substrate in meters
 	p.parse(varargin{:});
 
 	% Verify, if given as string, convert to number
@@ -100,7 +102,11 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 
 	% Display options
 	if ~p.Results.skipPlotting
-		f = uibandwidth(solns, freqs, 3,3, BW_cutoff);
+		if isnan(p.Results.e_r) || isnan(p.Results.d)
+			f = uibandwidth(solns, freqs, 3,3, BW_cutoff);
+		else
+			f = uibandwidth(solns, freqs, 3,3, BW_cutoff, p.Results.e_r, p.Results.d);
+		end
 	else
 		f = [];
 	end

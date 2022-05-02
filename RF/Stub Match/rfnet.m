@@ -228,7 +228,16 @@ classdef rfnet < handle
 			C = obj.abcd(2, 1);
 			D = obj.abcd(2, 2);
 		end
-		function [out, mt] = str(obj, title)
+		function [out, mt] = str(obj, title, e_r, d)
+			
+			show_micro = true;
+			
+			if ~exist('e_r', 'var')
+				show_micro = false;
+			end
+			if ~exist('d', 'var')
+				show_micro = false;
+			end
 			
 			if ~exist('title', 'var')
 				if obj.ID ~= -1
@@ -239,17 +248,36 @@ classdef rfnet < handle
 			end
 			
 			mt = MTable;
-			mt.row(["Index", "Type", "Z0 (ohms)", "f0 (MHz)", "Length (deg)"]);
+			if show_micro
+				mt.row(["Index", "Type", "Z0 (ohms)", "f0 (MHz)", "Length (deg)", "L (mm)", "W (mm)"]);
+			else
+				mt.row(["Index", "Type", "Z0 (ohms)", "f0 (MHz)", "Length (deg)"]);
+			end
 			
 			count = 0;
-			mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS), "N/A", "N/A"]);
+			if show_micro
+				mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS), "N/A", "N/A", "N/A", "N/A"]);
+			else
+				mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS), "N/A", "N/A"]);
+			end
 			count = count + 1;
 			for m = obj.mats
 				count = count + 1;
-				mt.row([num2str(count), m.desc.type, num2str(m.desc.Z0), num2str(m.desc.f0./1e6), num2str(m.desc.len_d)]);
+				if show_micro
+					[W, len] = tlin2microstrip(m.desc.Z0, e_r, d, m.desc.len_d, m.desc.f0);
+					m.desc.len_mm = len*1e3;
+					m.desc.width_mm = W*1e3;
+					mt.row([num2str(count), m.desc.type, num2str(m.desc.Z0), num2str(m.desc.f0./1e6), num2str(m.desc.len_d), num2str(m.desc.len_mm), num2str(m.desc.width_mm)]);
+				else
+					mt.row([num2str(count), m.desc.type, num2str(m.desc.Z0), num2str(m.desc.f0./1e6), num2str(m.desc.len_d)]);
+				end
 			end
 			count = count + 1;
-			mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL), "N/A", "N/A"]);
+			if show_micro
+				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL), "N/A", "N/A", "N/A", "N/A"]);
+			else
+				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL), "N/A", "N/A"]);
+			end
 			
 			
 			mt.title(title);
