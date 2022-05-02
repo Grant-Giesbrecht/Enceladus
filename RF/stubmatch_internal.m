@@ -82,7 +82,7 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 	
 	% Check if lower-order filters should be included
 	if p.Results.includeLower && N > 1
-		[lower_solns, ~, ~] = stubmatch_internal(ZS, ZL, N-1, 'includeLower', p.Results.includeLower, 'skipPlotting', true);
+		[lower_solns, ~, ~] = stubmatch_internal(ZS, ZL, N-1, 'includeLower', p.Results.includeLower, 'skipPlotting', true, 'f0', p.Results.f0, 'freqs', p.Results.freqs, 'BWCutoff', p.Results.BWCutoff, 'Zline', p.Results.Zline, 'Zstub', p.Results.Zstub, 'e_r', p.Results.e_r, 'd', p.Results.d);
 		solns = [solns, lower_solns];
 	end
 	
