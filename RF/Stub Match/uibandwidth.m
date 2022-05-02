@@ -1,4 +1,4 @@
-function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
+function f = uibandwidth(solns, freqs, spr, spc, optBW_param, e_r, d)
 % UIBANDWIDTH
 %
 % Interactive window for viewing different bandwidth responses for matching
@@ -7,7 +7,9 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 % See also: stubmatch, lpanalyze, contourplot2_gui
 
 	y_bounds = [-50, 0];
-
+	show_micro = true;
+    page_no = 1;
+    
 	% Initialize default arguments
 	if ~exist("spr", "var")
 		spr = 4;
@@ -17,6 +19,12 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 	end
 	if ~exist("optBW_param", "var")
 		optBW_param = -20;
+	end
+	if ~exist("e_r", "var")
+		show_micro = false;
+	end
+	if ~exist("d", "var")
+		show_micro = false;
 	end
 
 	nplots = spr*spc;
@@ -45,7 +53,7 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 	
 	% Control grid layout
 	cgm = uigridlayout(ctrl_p);
-	cgm.RowHeight = {'fit', 'fit', '1x'};
+	cgm.RowHeight = {'fit', 'fit', 'fit', '1x'};
 	
 	% Create Page Selector Text
 	hPageText = uilabel(cgm);
@@ -84,6 +92,30 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 	hCircButton.FontSize = 12;
 	hCircButton.ButtonPushedFcn = @(btn, event) printButtonCallback(btn, event);
 	
+    % Create BW Selector Text
+	hCircText = uilabel(cgm);
+	hCircText.Layout.Row = 3;
+	hCircText.Layout.Column = 1;
+	hCircText.Text = "Bandwidth Threshold:";
+	hCircText.FontSize = 12;
+	hCircText.HorizontalAlignment = 'right';
+    
+    % Create BW definition edit box
+    hBWEdit = uieditfield(cgm,'numeric', 'Limits', [-100 0], 'LowerLimitInclusive','on', 'UpperLimitInclusive','off', 'Value', optBW_param);
+    hBWEdit.Layout.Row = 3;
+    hBWEdit.Layout.Column = 2;
+    hBWEdit.ValueChangedFcn = @(edt, event) changeBWDefnCallback(edt, event);
+    
+    sortByBW(optBW_param);
+    
+    % Create BW unit Text
+	hCircText = uilabel(cgm);
+	hCircText.Layout.Row = 3;
+	hCircText.Layout.Column = 3;
+	hCircText.Text = " (dB)";
+	hCircText.FontSize = 12;
+	hCircText.HorizontalAlignment = 'left';
+    
 	% Initailize all axes (Subplots not used)
 	ha_list = uiaxes(glm);
 	ha_list.Layout.Row = 1;
@@ -130,8 +162,36 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 		page_no = str2num(val);
 		
 		plot_page(solns, page_no);
-	end
+    end
 	
+    function changeBWDefnCallback(source, eventdata)
+        
+        optBW_param = source.Value;
+        
+        % Recalculate BW and resort
+        sortByBW(optBW_param);
+        
+        % Refresh plots
+        plot_page(solns, page_no);
+        
+    end
+
+    function sortByBW(bw)
+        
+        % Calculate BW and add to list
+        BW_list = zeros(1, numel(solns));
+        idx = 1;
+        for s = solns
+            [BW_list(idx), ~, ~] = s.bandwidth("Absolute", bw);
+            idx = idx + 1;
+        end
+
+        % Sort solutions by BW
+        [BW_list, I] = sort(BW_list, 'descend');
+        solns = solns(I);
+        
+    end
+
 	function printButtonCallback(btn, event)
 		
 		% Get ID to search for
@@ -142,7 +202,11 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 		% Search for ID
 		for ss = solns
 			if ss.ID == find_id
-				disp(ss.str());
+				if show_micro
+					disp(ss.str("Circuit No. " + num2str(ss.ID), e_r, d));
+				else
+					disp(ss.str());
+				end
 				found = true;
 			end
 		end
@@ -201,7 +265,10 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param)
 			
 		end
 
-	end
+    end
+
+    
+
 end
 
 
