@@ -17,6 +17,8 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 	p.addParameter("Zstub", 50, @isnumeric);
 	p.addParameter("e_r", NaN, @isnumeric); % epsilon rel. for substrate
 	p.addParameter("d", NaN, @isnumeric); % Height of substrate in meters
+    p.addParameter("ZLsim", NaN, @isnumeric); % If ZL for simulated response is not constant at ZL, ZLsim can be provided as an array of ZL values corresponding to each freq
+    p.addParameter("ZSsim", NaN, @isnumeric); % If ZS for simulated response is not constant at ZL, ZLsim can be provided as an array of ZS values corresponding to each freq
 	p.parse(varargin{:});
 
 	% Verify, if given as string, convert to number
@@ -39,14 +41,14 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 	% Differentiate by Filter Order and compute filter solutions
 	if N == 1
 		% Find solutions
-		solns = Lmatch(ZS, ZL, Zline, Zstub, freqs, f0);
+		solns = Lmatch(ZS, ZL, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
 
 	elseif N == 2
 		ZI1 = sqrt(ZS.*ZL);
 
 		% Find solutions
-		solns_1 = Lmatch(ZS, ZI1, Zline, Zstub, freqs, f0);
-		solns_2 = Lmatch(ZI1, ZL, Zline, Zstub, freqs, f0);
+		solns_1 = Lmatch(ZS, ZI1, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
+		solns_2 = Lmatch(ZI1, ZL, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
 
 		% Merge sub-solution sets
 		solns = mergesolutions(solns_1, solns_2);
@@ -55,9 +57,9 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 		ZI2 = (ZS.*ZL.^2).^(1/3);
 
 		% Find solutions
-		solns_1 = Lmatch(ZS, ZI1, Zline, Zstub, freqs, f0);
-		solns_2 = Lmatch(ZI1, ZI2, Zline, Zstub, freqs, f0);
-		solns_3 = Lmatch(ZI2, ZL, Zline, Zstub, freqs, f0);
+		solns_1 = Lmatch(ZS, ZI1, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
+		solns_2 = Lmatch(ZI1, ZI2, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
+		solns_3 = Lmatch(ZI2, ZL, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
 
 		% Merge sub-solution sets
 		solns = mergesolutions(solns_1, solns_2);
@@ -69,10 +71,10 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 		ZI3 = (ZS.*ZL.^3).^(.25);
 
 		% Find solutions
-		solns_1 = Lmatch(ZS, ZI1, Zline, Zstub, freqs, f0);
-		solns_2 = Lmatch(ZI1, ZI2, Zline, Zstub, freqs, f0);
-		solns_3 = Lmatch(ZI2, ZI3, Zline, Zstub, freqs, f0);
-		solns_4 = Lmatch(ZI3, ZL, Zline, Zstub, freqs, f0);
+		solns_1 = Lmatch(ZS, ZI1, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
+		solns_2 = Lmatch(ZI1, ZI2, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
+		solns_3 = Lmatch(ZI2, ZI3, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
+		solns_4 = Lmatch(ZI3, ZL, Zline, Zstub, freqs, f0, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
 
 		% Merge sub-solution sets
 		solns = mergesolutions(solns_1, solns_2);
@@ -82,7 +84,7 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 	
 	% Check if lower-order filters should be included
 	if p.Results.includeLower && N > 1
-		[lower_solns, ~, ~] = stubmatch_internal(ZS, ZL, N-1, 'includeLower', p.Results.includeLower, 'skipPlotting', true, 'f0', p.Results.f0, 'freqs', p.Results.freqs, 'BWCutoff', p.Results.BWCutoff, 'Zline', p.Results.Zline, 'Zstub', p.Results.Zstub, 'e_r', p.Results.e_r, 'd', p.Results.d);
+		[lower_solns, ~, ~] = stubmatch_internal(ZS, ZL, N-1, 'includeLower', p.Results.includeLower, 'skipPlotting', true, 'f0', p.Results.f0, 'freqs', p.Results.freqs, 'BWCutoff', p.Results.BWCutoff, 'Zline', p.Results.Zline, 'Zstub', p.Results.Zstub, 'e_r', p.Results.e_r, 'd', p.Results.d, "ZLsim", p.Results.ZLsim, "ZSsim", p.Results.ZSsim);
 		solns = [solns, lower_solns];
 	end
 	
@@ -99,7 +101,7 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 	% Sort solutions by BW
 	[BW_list, I] = sort(BW_list, 'descend');
 	solns = solns(I);
-
+	
 	% Display options
 	if ~p.Results.skipPlotting
 		if isnan(p.Results.e_r) || isnan(p.Results.d)

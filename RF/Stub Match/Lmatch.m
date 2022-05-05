@@ -1,5 +1,11 @@
-function solns = Lmatch(Zin, Zload, Zline, Zstub, freqs, f0)
+function solns = Lmatch(Zin, Zload, Zline, Zstub, freqs, f0, varargin)
 	
+    % Parse input arguments
+	p = inputParser;
+    p.addParameter("ZLsim", NaN, @isnumeric); % If ZL for simulated response is not constant at ZL, ZLsim can be provided as an array of ZL values corresponding to each freq
+    p.addParameter("ZSsim", NaN, @isnumeric); % If ZS for simulated response is not constant at ZL, ZLsim can be provided as an array of ZS values corresponding to each freq
+	p.parse(varargin{:});
+    
 	% Find target to match
 	RL = real(Zload);
 	XL = imag(Zload);
@@ -64,7 +70,18 @@ function solns = Lmatch(Zin, Zload, Zline, Zstub, freqs, f0)
 		net4.name = "OSTUB No.2";
 		net4.ID = 4;
 		solns(end+1) = net4;
-	end	
+    end	
 	
+    % Distinguish between design and simulation frequency if provided
+    if ~isnan(p.Results.ZLsim) % Check ZL
+        for s = solns
+           s.ZL = p.Results.ZLsim; 
+        end
+    end
+    if ~isnan(p.Results.ZSsim) % Check ZS
+        for s = solns
+           s.ZS = p.Results.ZSsim; 
+        end
+    end
 	
 end

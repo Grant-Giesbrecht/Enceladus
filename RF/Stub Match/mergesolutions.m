@@ -22,7 +22,9 @@ function ssa = mergesolutions(ss1, ss2, is_recursive, varargin)
 		for s2 = ss2
 			% Create new rfnet
 			newnet = rfnet(s1.mats(1), s1.ZS, s2.ZL);
-			
+			newnet.ZS_design = s1.ZS_design;
+            newnet.ZL_design = s2.ZL_design;
+            
 			% Add all other elements
 			for i = 2:numel(s1.mats)
 				newnet.add(s1.mats(i));

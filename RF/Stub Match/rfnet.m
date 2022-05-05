@@ -7,6 +7,12 @@ classdef rfnet < handle
 		ZL
 		ZS
 		ID % Used to ID different nets when considering multiple
+        
+        % These parameters are used when ZL and ZS are lists, but the
+        % network is designed for a single impedance. The design impedances
+        % can be saved here and printed in tables
+        ZL_design
+        ZS_design
 	end
 	methods
 		function obj = rfnet(rfm, ZS, ZL)
@@ -16,7 +22,10 @@ classdef rfnet < handle
 			obj.name = "RF Network";
 			obj.ZS = ZS;
 			obj.ZL = ZL;
-			obj.ID = -1; 
+			obj.ID = -1;
+            
+            obj.ZS_design = ZS;
+            obj.ZL_design = ZL;
 		end
 		function add(obj, rfn)
 			
@@ -256,9 +265,9 @@ classdef rfnet < handle
 			
 			count = 0;
 			if show_micro
-				mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS), "N/A", "N/A", "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (SRC)", num2str(obj.desc.ZS_design), "N/A", "N/A", "N/A", "N/A"]);
 			else
-				mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS), "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (SRC)", num2str(obj.desc.ZS_design), "N/A", "N/A"]);
 			end
 			count = count + 1;
 			for m = obj.mats
@@ -274,9 +283,9 @@ classdef rfnet < handle
 			end
 			count = count + 1;
 			if show_micro
-				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL), "N/A", "N/A", "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.desc.ZL_design), "N/A", "N/A", "N/A", "N/A"]);
 			else
-				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL), "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.desc.ZL_design), "N/A", "N/A"]);
 			end
 			
 			
