@@ -19,6 +19,7 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 	p.addParameter("d", NaN, @isnumeric); % Height of substrate in meters
     p.addParameter("ZLsim", NaN, @isnumeric); % If ZL for simulated response is not constant at ZL, ZLsim can be provided as an array of ZL values corresponding to each freq
     p.addParameter("ZSsim", NaN, @isnumeric); % If ZS for simulated response is not constant at ZL, ZLsim can be provided as an array of ZS values corresponding to each freq
+	p.addParameter("showImpedancePlot", true, @islogical); % If ZS for simulated response is not constant at ZL, ZLsim can be provided as an array of ZS values corresponding to each freq
 	p.parse(varargin{:});
 
 	% Verify, if given as string, convert to number
@@ -111,6 +112,38 @@ function [solns, BW_list, f] = stubmatch_internal(ZS, ZL, N, varargin)
 		end
 	else
 		f = [];
+	end
+	
+	% Show auxilliary plots
+	if ~p.Results.skipPlotting
+		if p.Results.showImpedancePlot && (~any(isnan(p.Results.ZLsim)) || ~any(isnan(p.Results.ZSsim)))
+			figure(1);
+			hold off
+			legend_text = {};
+			if ~isnan(p.Results.ZLsim)
+				plot(p.Results.freqs./1e9, real(p.Results.ZLsim), 'Color', [0, 0, .7], 'LineStyle', '-');
+				hold on
+				plot(p.Results.freqs./1e9, imag(p.Results.ZLsim), 'Color', [0, 0, .7], 'LineStyle', '-.');
+				legend_text = [legend_text(:)', {"Re(Z_L)"}, {"Im(Z_L)"}];
+			end
+			if ~isnan(p.Results.ZSsim)
+				plot(p.Results.freqs./1e9, real(p.Results.ZSsim), 'Color', [.7, 0, .0], 'LineStyle', '-');
+				hold on
+				plot(p.Results.freqs./1e9, imag(p.Results.ZSsim), 'Color', [.7, 0, 0], 'LineStyle', '-.');
+				legend_text = [legend_text(:)', {"Re(Z_S)"}, {"Im(Z_S)"}];
+			end
+			scatter(p.Results.f0./1e9, real(ZL), 'Marker', '*', 'MarkerFaceColor', [0, 0, .7], 'MarkerEdgeColor', [0, 0, 1] );
+			scatter(p.Results.f0./1e9, imag(ZL), 'Marker', 'o', 'MarkerEdgeColor', [0, 0, 1] );
+			scatter(p.Results.f0./1e9, real(ZS), 'Marker', '*', 'MarkerFaceColor', [.7, 0, 0], 'MarkerEdgeColor', [1, 0, 0] );
+			scatter(p.Results.f0./1e9, imag(ZS), 'Marker', 'o', 'MarkerEdgeColor', [1, 0, 0] );
+			legend(legend_text{:}, "Re(Z_{L0})", "Im(Z_{L0})", "Re(Z_{S0})", "Im(Z_{S0})");
+			xlabel("Frequency (GHz)");
+			ylabel("Impedance (\Omega)");
+			title("Matching Network Terminating Impedances");
+			grid on;
+			hlin(0, 'Color', [0,0,0]);
+			
+		end
 	end
 	
 end
