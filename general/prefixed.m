@@ -74,6 +74,14 @@ function [tf, mult, unit]=prefixed(str, base)
 		mult = 1e18;
 		tf = true;
 		return;
+	elseif strcmp(prefix, "d")
+		mult = 1e-1;
+		tf = true;
+		return;
+	elseif strcmp(prefix, "c")
+		mult = 1e-2;
+		tf = true;
+		return;
 	elseif strcmp(prefix, "m")
 		mult = 1e-3;
 		tf = true;
