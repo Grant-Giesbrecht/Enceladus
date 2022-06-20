@@ -32,3 +32,22 @@ s3mr = s3.range('E3:G7')
 % The correctly formatted manual ranged data can be converted to DDF.
 s3mrddf = cells2ddf(s3mr);
 s3mrddf.show();
+
+% The spreadsheet document can include a MATLAB format sheet, specifying
+% how to automatically import the data with the intended format. A struct
+% is read from this sheet using this function:
+fmt_spec = ssdoc.getFormat();
+
+% You can get a cell range with a format
+fsr = ssdoc.struct2range(fmt_spec(1));
+
+% You can also automatically save all to the workspace
+ssdoc.assignAllStruct(fmt_spec);
+
+
+
+
+
+
+
+
