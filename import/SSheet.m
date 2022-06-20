@@ -40,7 +40,11 @@ classdef SSheet < handle
 				
 				% Create import options
 % 				opt = spreadsheetImportOptions;
-				opt = detectImportOptions("DemoSpreadsheet.xlsx")
+				if numel(p.Results.Sheet) > 0
+					opt = detectImportOptions("DemoSpreadsheet.xlsx", 'Sheet', p.Results.Sheet);
+				else
+					opt = detectImportOptions("DemoSpreadsheet.xlsx")
+				end
 				if ~strcmp(p.Results.LastCell, "all")
 					opt.VariableNames = names; % Must change number of variable names before adjusting data range or will throw error
 					opt.DataRange = strcat(trc, ":", p.Results.LastCell);
