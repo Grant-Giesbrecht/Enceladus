@@ -1,5 +1,9 @@
-function cells2wkspc(cells)
+function cells2wkspc(cells, VarNamePrefix)
 
-	cells2ddf(cells, 'Assign', true);
+	if ~exist('VarNamePrefix', 'var')
+		VarNamePrefix = "";
+	end
+
+	cells2ddf(cells, 'Assign', true, 'VarNamePrefix', VarNamePrefix);
 
 end
