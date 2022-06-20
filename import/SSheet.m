@@ -2,6 +2,8 @@ classdef SSheet < handle
 	
 	properties
 		cells
+		filename
+		sheet_name
 	end
 	
 	methods
@@ -11,7 +13,7 @@ classdef SSheet < handle
 			p = inputParser;
 			p.addParameter('Data', {}, @iscell);
 			p.addParameter('File', "", @(x) isstring(x) || ischar(x));
-			p.addParameter('LastCell', "G30", @(x) isstring(x) || ischar(x));
+			p.addParameter('LastCell', "all", @(x) isstring(x) || ischar(x));
 			p.addParameter('Sheet', "", @(x) isstring(x) || ischar(x));
 			p.parse(varargin{:});
 			
@@ -25,6 +27,9 @@ classdef SSheet < handle
 			% If file provided
 			if ~strcmp(p.Results.File, "")
 				
+				obj.filename = p.Results.File;
+				obj.sheet_name = p.Results.Sheet;
+				
 				trc = "A1"; % Changing this will break indexing later
 				
 				names = [];
@@ -34,9 +39,14 @@ classdef SSheet < handle
 				end
 				
 				% Create import options
-				opt = spreadsheetImportOptions;
-				opt.VariableNames = names; % Must change number of variable names before adjusting data range or will throw error
-				opt.DataRange = strcat(trc, ":", p.Results.LastCell);
+% 				opt = spreadsheetImportOptions;
+				opt = detectImportOptions("DemoSpreadsheet.xlsx")
+				if ~strcmp(p.Results.LastCell, "all")
+					opt.VariableNames = names; % Must change number of variable names before adjusting data range or will throw error
+					opt.DataRange = strcat(trc, ":", p.Results.LastCell);
+				else
+					opt.DataRange = 'A1';
+				end
 				opt.Sheet = p.Results.Sheet;
 				
 				obj.cells = readcell(p.Results.File, opt);
@@ -55,8 +65,78 @@ classdef SSheet < handle
 			
 			rdata = obj.cells(tl_r:br_r, tl_c:br_c);
 			
+		end
+		
+		function rdata = autorange(obj, seedcell)
+			
+			seedrow = -1;
+			seedcol = -1;
+			
+			pop = obj.getPopulated();
+			
+			% Check if autofind seed
+			if ~exist('seedcell', 'var')
+				seedcell = 'auto';
+			end
+			
+			% Auto-seed if requested
+			if strcmpi(seedcell, 'auto')
+				idx1 = find(pop, 1, 'first');
+				
+				% If all missing
+				if isempty(idx1)
+					rdata = [];
+				end
+				
+				[r1,c1] = ind2sub(size(pop), idx1);
+				seedcell = [char(SSheet.num2xlcol(c1)), char(num2str(r1))];
+				
+				seedrow = r1;
+				seedcol = c1;
+			else
+				[seedrow, seedcol] = SSheet.excelAddr2RC(seedcell);
+			end
+			
+			% Find contiguous block
+			[tl, br] = find_contiguous_block(pop, seedrow, seedcol);
+			
+			tl_c = tl.col;
+			tl_r = tl.row;
+			br_c = br.col;
+			br_r = br.row;
+			
+			
+			
+			
+			
+% 			[topLeft, botRight] = SSheet.splitExcelRange(tl_br);
+% 			[tl_c, tl_r] = SSheet.splitExcelAddr(topLeft);
+% 			[br_c, br_r] = SSheet.splitExcelAddr(botRight);
+% 			
+% 			tl_c = SSheet.xlcol2num(tl_c);
+% 			br_c = SSheet.xlcol2num(br_c);
+			
+			rdata = obj.cells(tl_r:br_r, tl_c:br_c);
 			
 		end
+		
+		function pop = getPopulated(obj)
+			% Show which cells are populated (true) vs missing (false)
+			
+			[nrows, ncols] = size(obj.cells);
+			
+			pop = false(nrows, ncols);
+			
+			% Loop over all, check if populated
+			for r = 1:nrows
+				for c = 1:ncols
+					pop(r,c) = ~isa(obj.cells{r,c}, 'missing');
+				end
+			end
+			
+		end
+			
+		
 	end
 	
 	methods (Static)
@@ -127,6 +207,13 @@ classdef SSheet < handle
 			end
 			num = str2double(addrStr(idx:end));
 			let = addrStr(1:idx-1);
+			
+		end
+		
+		function [r,c] = excelAddr2RC(addrStr)
+			
+			[let, r] = SSheet.splitExcelAddr(addrStr);
+			c = SSheet.xlcol2num(let);
 			
 		end
 		
