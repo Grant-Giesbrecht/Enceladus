@@ -8,11 +8,18 @@ function ddf = cells2ddf(cells, varargin)
 	p.addParameter('NamePos', 'Horiz' , @(x) any(validatestring(char(x),expectedPos)));
 	p.addParameter('Assign', false , @islogical);
 	p.addParameter('AppendDDF', [] , @(x) true);
+	p.addParameter('VarNamePrefix', "" , @(x) true);
 	p.parse(varargin{:});
 
 	% Transpose cells if vertical
 	if strcmp(p.Results.NamePos, 'Vert')
 		cells = cells.';
+	end
+	
+	if ~strcmpi(p.Results.VarNamePrefix, "")
+		vnp = p.Results.VarNamePrefix + "_";
+	else
+		vnp = "";
 	end
 	
 	% Get data size
@@ -89,7 +96,16 @@ function ddf = cells2ddf(cells, varargin)
 	% Assign in workspace
 	if p.Results.Assign
 		for i=1:c
-			var_name = strrep(titles(i), " ", "_");
+			var_name = vnp + titles(i);
+			var_name = strrep(var_name, " ", "_");
+			var_name = strrep(var_name, "(", "");
+			var_name = strrep(var_name, ")", "");
+			var_name = strrep(var_name, "[", "");
+			var_name = strrep(var_name, "]", "");
+			var_name = strrep(var_name, "{", "");
+			var_name = strrep(var_name, "}", "");
+			var_name = strrep(var_name, ">", "");
+			var_name = strrep(var_name, "<", "");
 			var_name = strrep(var_name, string(char(9)), "_");
 			assignin('base', var_name, data{i});
 		end
