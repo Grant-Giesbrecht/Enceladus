@@ -4,9 +4,29 @@ classdef SSheetDoc
 		sheets
 	end
 	
-	
 	methods
-		function obj = SSheetDoc(filename)
+		function obj = SSheetDoc(filename, use_format_sheet, save_as_format, use_name_prefix)
+		%
+		% filename - File to read in its entirety
+		%
+		% use_format_sheet - Look for a format sheet and use it to save data to the workspace
+		%
+		% save_as_format - Format in which to save the data (only
+		% applicable if use_format_sheet = true. Options include 'var',
+		% 'cells', and 'ddf'.
+		%
+		% use_name_prefix - Save name in variables assigned in worksapce.
+		% Only applicable if save_as_format='var'.
+		%
+		
+			% Check optional arguments
+			if ~exist('use_format_sheet', 'var')
+				use_format_sheet = false;
+			end
+			if ~exist('save_as_format', 'var')
+				save_as_ddf = 'cells';
+			end
+			
 			sheet_names = sheetnames(filename)';
 			
 			obj.filename = filename;
@@ -14,6 +34,17 @@ classdef SSheetDoc
 			for sn = sheet_names
 				nss = SSheet('File', filename, 'Sheet', sn, 'LastCell', 'all');
 				obj.sheets = addTo(obj.sheets, nss);
+			end
+			
+			if use_format_sheet
+				fmt = obj.getFormat();
+				
+				
+				if ~exist('use_name_prefix', 'var')
+					use_name_prefix = (numel(fmt) > 1);
+				end
+				
+				obj.assignAllSpec(fmt, save_as_format, use_name_prefix);
 			end
 		end
 		
@@ -90,7 +121,7 @@ classdef SSheetDoc
 			end
 		end
 		
-		function cr = struct2range(obj, fmt)
+		function cr = spec2range(obj, fmt)
 		% Takes a format struct (from getFormat, which gets the format from
 		% the spreadsheet itself) and returns a range of data from it.
 			
@@ -105,14 +136,51 @@ classdef SSheetDoc
 			
 		end
 		
-		function assignAllStruct(obj, fmts)
+		function assignAllSpec(obj, fmts, save_as_format, use_name_prefix)
 		% Takes a format struct, or list of format structs (from getFormat)
 		% and assigns all specified formats' data cells to the workspace.
-		
+		%
+		% fmts - List of format specifier structs to define ranges to
+		% extract
+		%
+		% save_as_format - String represeting the format for the data saved
+		% to the workspace. Options include 'var', 'cells', and 'ddf'.
+		%
+		% use_name_prefix - Option to save format_spec name to variable
+		% names to differentiate between similar variables between multiple
+		% format specs. Only applicable when save_as_format = 'var'.
+		%
+			if ~exist('save_as_format', 'var')
+				save_as_format = 'cells';
+			end
+			
+			if ~exist('use_name_prefix', 'var')
+				use_name_prefix = (numel(fmts) > 1);
+			end
+
+			prefix = "";
+			
 			for fmt = fmts
-				cr = obj.struct2range(fmt);
+				
+				% Add prefix if requested
+				if use_name_prefix
+					prefix = fmt.name;
+				end
+				
+				cr = obj.spec2range(fmt);
 				fixed_name = strrep(fmt.name, ' ', '_');
-				assignin('base', fixed_name, cr);
+				
+				% Convert to DDF if requested
+				if strcmpi(save_as_format, 'DDF') % Save as DDF object
+					cr = cells2ddf(cr);
+					assignin('base', fixed_name, cr);
+				elseif strcmpi(save_as_format, 'var') % Save as variables in workspace
+					cells2wkspc(cr, prefix);
+				elseif strcmpi(save_as_format, 'cells') % Save as cell array
+					assignin('base', fixed_name, cr);
+				end
+				
+				
 			end
 			
 		end
