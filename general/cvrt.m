@@ -77,6 +77,9 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 	elseif strcmp(units0, "in") 
 		quant = "LENGTH";
 		val_si = val.*.0254;
+	elseif strcmp(units0, "ft") 
+		quant = "LENGTH";
+		val_si = val.*12.*.0254;
 	elseif strcmp(units0, "mil") % 1/1000 of an inch
 		quant = "LENGTH";
 		val_si = val.*1e-3.*.0254;
@@ -235,6 +238,11 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 			error("Cannot convert units of " + quant + " to units of LENGTH.");
 		end
 		valf = val_si./.0254;
+	elseif strcmp(unitsf, "ft")
+		if ~strcmp(quant, "LENGTH")
+			error("Cannot convert units of " + quant + " to units of LENGTH.");
+		end
+		valf = val_si./.0254./12;
 	elseif strcmp(unitsf, "mil") % 1/1000 of an inch
 		if ~strcmp(quant, "LENGTH")
 			error("Cannot convert units of " + quant + " to units of LENGTH.");
