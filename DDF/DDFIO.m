@@ -302,11 +302,11 @@ classdef DDFIO < handle
 % 				out = strcat(out, string(newline), "1D Variables:", string(newline));
 				i = 0;
 				matTable1 = MTable();
-				matTable1.row(["Name", "Type", "Value", "Description"]);
+				matTable1.row(["Name", "Type", "Len", "Value", "Description"]);
 				for v=obj.vars1D
 					i = i + 1;
 
-					matTable1.row([string(v.name), string(v.type), v.getValueStr(), string(v.desc)]);
+					matTable1.row([string(v.name), string(v.type), num2str(v.count), v.getValueStr(), string(v.desc)]);
 					% flatTable.row([limitLength(v.name, nameCap), limitLength(v.type, typeCap), limitLength(v.getValueStr(), valCap), limitLength(string(v.desc), descCap)]);
 
 				end
