@@ -1,5 +1,5 @@
-function [valf, quant] = cvrt2(val, units0, unitsf)
-% CVRT2 Converts between units
+function [valf, quant] = cvrt(val, units0, unitsf)
+% CVRT Converts between units
 %
 % Accepts a value and a starting unit and an optional ending unit, and
 % converts the value. If no ending unit is specified, SI units are assumed.
@@ -90,6 +90,9 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 		quant = "LENGTH";
 		[~, mult, ~] = prefixed(units0, "ly");
 		val_si = val.*mult.*9.461e15;
+	elseif strcmp(units0, "ozCu") % Ounces of copper, as PCB trace thickness
+		quant = "LENGTH";
+		val_si = val.*1.37.*1e-3.*.0254;
 	elseif prefixed(units0, "g") %----------- Weight ---------
 		quant = "MASS";
 		[~,mult,~]=prefixed(units0, "g"); % Get multiplier
@@ -259,6 +262,11 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 		end
 		[~,mult,~]=prefixed(unitsf, "ly"); % Get multiplier
 		valf = val_si./9.461e15./mult;
+	elseif strcmp(unitsf, "ozCu") % "ounce of copper" for PCB trace thickness
+		if ~strcmp(quant, "LENGTH")
+			error("Cannot convert units of " + quant + " to units of LENGTH.");
+		end
+		valf = val./1.37.*1e3./.0254;
 	elseif prefixed(unitsf, "g") %---------- Mass Units -------------
 		if ~strcmp(quant, "MASS")
 			error("Cannot convert units of " + quant + " to units of MASS.");
