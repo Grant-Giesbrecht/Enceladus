@@ -19,6 +19,8 @@ function [h, contours_out] = xcontoursc(lp, val_name, varargin)
 	p.addParameter('ContourLevels', [], @isnumeric);
 	p.parse(varargin{:});
 	
+% 	autoclosecontours = True;
+
 	% Get plot arguments
     tmp = [fieldnames(p.Unmatched),struct2cell(p.Unmatched)];
     plotArgs = reshape(tmp',[],1)'; 
@@ -219,6 +221,11 @@ function [h, contours_out] = xcontoursc(lp, val_name, varargin)
 			displ();
 		end
 		
+% 		% Automatically close all contours
+% 		if g(end) ~= g(1) && autoclosecontours
+% 			g = [g, g(1)];
+% 		end
+
 % 		h = plot(c, 'EdgeColor', 'none');
 		try
 			ph = plotsc(g, 'Color', contour_color, 'Marker', 'None', 'LineStyle', '-', 'ContourValue', arr.level, 'ContourLabel', p.Results.ContourLabel, 'Scheme', p.Results.Scheme);

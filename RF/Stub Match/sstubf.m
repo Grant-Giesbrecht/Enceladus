@@ -1,5 +1,6 @@
 function rfm = sstubf(Z0, thetad, freqs, f0)
-	
+% SSTUBF Creates the ABCD matrix for a shorted stub
+
 	% Create matrix class
 	rfm = rfmat(Z0, freqs);
 	

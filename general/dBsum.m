@@ -11,7 +11,7 @@ function c = dBsum(a, b, L12, L2)
 %	DBSUM(A, B, L1, L2) Set the log base of A and B individually; L1 sets
 %	the base for A and the result, L2 sets the base for B.
 %
-%	See also DB2LIN, LIN2DB
+%	See also DBMULT, DB2LIN, LIN2DB
 
 	% Check for optional variables
 	if ~exist('L12', 'var')

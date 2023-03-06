@@ -68,9 +68,7 @@ function show_double_stub(Z_L, Z_S, f0, freqs, Zline, Zstub)
     
     figure(2);
     plotBandwidth(solns_2,freqs, 2, 2, -10);
-    
-    
-    
+	
     ss = mergesolutions(solns_1, solns_2);
     
     barprint("Combined 2-Stage Network");

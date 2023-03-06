@@ -460,7 +460,9 @@ classdef DeviceAnalysis < handle
 		end
 		
 		function [freqs, lmfoms, deltas] = lmpaefom_freq(obj, showIntermediatePlots, alpha, beta, delta, figno)
-			
+			% Calls lmpaefom_overall for each unique frequency in the
+            % dataset
+
 			if ~exist('showIntermediatePlots', 'var')
 				showIntermediatePlots = true;
 			end
