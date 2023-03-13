@@ -148,6 +148,27 @@ function [valf, quant] = cvrt(val, units0, unitsf)
 	elseif strcmp(units0, "min/km")
 		quant = "SPEED";
 		val_si = 60./val.*.277778;
+	elseif strcmp(units0, "bit") %---------- Information -------------
+		quant = "DATA";
+		val_si = val;
+	elseif strcmp(units0, "byte")
+		quant = "DATA";
+		val_si = val.*8;
+	elseif strcmp(units0, "KB")
+		quant = "DATA";
+		val_si = val.*1024.*8;
+	elseif strcmp(units0, "MB")
+		quant = "DATA";
+		val_si = val.*1024.^2.*8;
+	elseif strcmp(units0, "GB")
+		quant = "DATA";
+		val_si = val.*1024.^3.*8;
+	elseif strcmp(units0, "TB")
+		quant = "DATA";
+		val_si = val.*1024.^4.*8;
+	elseif strcmp(units0, "PB")
+		quant = "DATA";
+		val_si = val.*1024.^5.*8;
 	else
 		error("Unit " + units0 + " not recognized.");
 	end
@@ -373,6 +394,41 @@ function [valf, quant] = cvrt(val, units0, unitsf)
 % 		quant = "SPEED";
 % 		val_si = val.*.3048;
 	
+	elseif strcmp(unitsf, "bit") %-------------- Information -------------
+		if ~strcmp(quant, "DATA")
+			error("Cannot convert units of " + quant + " to units of DATA.");
+		end
+		valf = val_si;
+	elseif strcmp(unitsf, "byte")
+		if ~strcmp(quant, "DATA")
+			error("Cannot convert units of " + quant + " to units of DATA.");
+		end
+		valf = val_si./8;
+	elseif strcmp(unitsf, "KB")
+		if ~strcmp(quant, "DATA")
+			error("Cannot convert units of " + quant + " to units of DATA.");
+		end
+		valf = val_si./(1024)./8;
+	elseif strcmp(unitsf, "MB")
+		if ~strcmp(quant, "DATA")
+			error("Cannot convert units of " + quant + " to units of DATA.");
+		end
+		valf = val_si./(1024.^2)./8;
+	elseif strcmp(unitsf, "GB")
+		if ~strcmp(quant, "DATA")
+			error("Cannot convert units of " + quant + " to units of DATA.");
+		end
+		valf = val_si./(1024.^3)./8;
+	elseif strcmp(unitsf, "TB")
+		if ~strcmp(quant, "DATA")
+			error("Cannot convert units of " + quant + " to units of DATA.");
+		end
+		valf = val_si./(1024.^4)./8;
+	elseif strcmp(unitsf, "PB")
+		if ~strcmp(quant, "DATA")
+			error("Cannot convert units of " + quant + " to units of DATA.");
+		end
+		valf = val_si./(1024.^5)./8;
 	else
 		error("Unit " + unitsf + " not recognized.");
 	end
