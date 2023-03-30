@@ -1,5 +1,7 @@
 function rfm = termf(Zterm, freqs)
-	
+% TERMF Creates the ABCD matrix for a termination of value Zterm, swept
+% over frequency.
+
 	% Create matrix class
 	rfm = rfmat(Zterm, freqs);
 	

@@ -1,4 +1,6 @@
 classdef rfnet < handle
+% RFNET Represents a network of RFMat objects
+
 	properties
 		mats
 		freqs
@@ -37,7 +39,7 @@ classdef rfnet < handle
 			% Save object
 			obj.mats(end+1) = rfn;
 
-			% Chain ABCD 
+			% Chain ABCD
 			for iter = 1:numel(obj.freqs)
 				obj.abcd(:,:, iter) = obj.abcd(:,:,iter) * rfn.abcd(:,:, iter);
 			end

@@ -1,4 +1,5 @@
 classdef rfmat < handle
+% RFMAT Represents an RF element in matrix form
 	properties
 		abcd
 		freqs
@@ -16,6 +17,7 @@ classdef rfmat < handle
 			obj.desc.len_d = [];
 			obj.desc.f0 = [];
 			obj.desc.Z0 = [];
+			obj.desc.comp = []; % COmponents of parallel network
 		end
 	end
 end
