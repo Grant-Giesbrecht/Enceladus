@@ -1,5 +1,5 @@
-function [valf, quant] = cvrt2(val, units0, unitsf)
-% CVRT2 Converts between units
+function [valf, quant] = cvrt(val, units0, unitsf)
+% CVRT Converts between units
 %
 % Accepts a value and a starting unit and an optional ending unit, and
 % converts the value. If no ending unit is specified, SI units are assumed.
