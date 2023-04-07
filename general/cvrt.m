@@ -93,7 +93,7 @@ function [valf, quant] = cvrt(val, units0, unitsf)
 	elseif strcmp(units0, "ozCu") % Ounces of copper, as PCB trace thickness
 		quant = "LENGTH";
 		val_si = val.*1.37.*1e-3.*.0254;
-	elseif prefixed(units0, "g") %----------- Weight ---------
+	elseif prefixed(units0, "g") %----------- Mass ---------
 		quant = "MASS";
 		[~,mult,~]=prefixed(units0, "g"); % Get multiplier
 		val_si = val.*mult./1e3;
