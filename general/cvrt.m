@@ -87,7 +87,7 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 		quant = "LENGTH";
 		[~, mult, ~] = prefixed(units0, "ly");
 		val_si = val.*mult.*9.461e15;
-	elseif prefixed(units0, "g") %----------- Weight ---------
+	elseif prefixed(units0, "g") %----------- Mass ---------
 		quant = "MASS";
 		[~,mult,~]=prefixed(units0, "g"); % Get multiplier
 		val_si = val.*mult./1e3;
@@ -255,7 +255,7 @@ function [valf, quant] = cvrt2(val, units0, unitsf)
 		if ~strcmp(quant, "MASS")
 			error("Cannot convert units of " + quant + " to units of MASS.");
 		end
-		[~,mult,~]=prefixed(unitsf, "m"); % Get multiplier
+		[~,mult,~]=prefixed(unitsf, "g"); % Get multiplier
 		valf = val_si./mult.*1e3;
 	elseif strcmp(unitsf, "lb")
 		if ~strcmp(quant, "MASS")
