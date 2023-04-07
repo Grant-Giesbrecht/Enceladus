@@ -1,5 +1,6 @@
 function rfm = ostubf(Z0, thetad, freqs, f0)
-	
+% OSTUBF Creates the ABCD matrix for an open stub.
+
 	% Create matrix class
 	rfm = rfmat(Z0, freqs);
 	

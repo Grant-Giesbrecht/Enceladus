@@ -1,5 +1,6 @@
 function rfm = seriesf(Zser, freqs)
-	
+% SERIESF Creates the ABCD matrix for an impedance in series
+
 	% Create matrix class
 	rfm = rfmat(Zser, freqs);
 	

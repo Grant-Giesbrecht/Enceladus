@@ -4,6 +4,9 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 
 	% Return if no data provided
 	if isempty(contour_list)
+		iarea = 0;
+		polyi = [];
+		h = [];
 		return;
 	end
 
@@ -21,7 +24,9 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 	num_imag = 100;
 
 	% Scan over each contour...
-	plot_contours = [];
+	plot_contours1 = [];
+	plot_contours2 = [];
+	use_first = true;
 	for c = contour_list
 		
 		% Verify contour is not empty
@@ -39,17 +44,49 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 			h = [];
 			return;
 		end
+
+		
+
 		% Save all contours (to find overlap later)
-		plot_contours = [plot_contours, cont_data];
+		if use_first
+			plot_contours1 = cont_data;
+			use_first = false;
+		else
+			plot_contours2 = cont_data;
+		end
 		
 	end
 
+
+
+	found_ans = false;
+	for pc1 = plot_contours1
+		for pc2 = plot_contours2
+			x1 = real(pc1.gamma);
+			y1 = imag(pc1.gamma);
+			x2 = real(pc2.gamma);
+			y2 = imag(pc2.gamma);
+
+			[h, polyi, iarea] = vennsc_internal(x1, y1, x2, y2);
+			if iarea > 0
+				displ("Found it!")
+				found_ans = true;
+			end
+
+			if found_ans
+				break
+			end
+		end
+
+		if found_ans
+			break
+		end
+	end
 	
-	
-	x1 = real(plot_contours(1).gamma);
-	y1 = imag(plot_contours(1).gamma);
-	x2 = real(plot_contours(2).gamma);
-	y2 = imag(plot_contours(2).gamma);
+% 	x1 = real(plot_contours(1).gamma);
+% 	y1 = imag(plot_contours(1).gamma);
+% 	x2 = real(plot_contours(2).gamma);
+% 	y2 = imag(plot_contours(2).gamma);
 	
 	% Abort if less than three points exist
 	if numel(x1) < 3 || numel(y1) < 3 || numel(x2) < 3 || numel(y2) < 3
@@ -74,7 +111,9 @@ function [h, polyi, iarea] = vennsc(contour_list, varargin)
 	%without triggering the warning that appears by default
 	p1 = simplify(polyshape(x1, y1, 'KeepCollinearPoints', true), 'KeepCollinearPoints', false);
 	p2 = simplify(polyshape(x2, y2, 'KeepCollinearPoints', true), 'KeepCollinearPoints', false);
-	
+
+% 	p1 = polyshape(x1, y1);
+% 	p2 = polyshape(x2, y2);
 	
     [warnMsg, ~] = lastwarn;
     if ~isempty(warnMsg)

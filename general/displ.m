@@ -28,6 +28,9 @@ function displ(varargin)
 		
 	end
 	
+	% MATLAB doesn't recognize \n, so manually find/replace it.
+	disp_str = strrep(disp_str, "\n", newline);
+	
 	%Display the final string
 	if nargin == 0 %If not arguments, print a blank newline
 		disp(" ") %Display a space to print a new line
