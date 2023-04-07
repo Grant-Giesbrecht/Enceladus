@@ -14,6 +14,6 @@ function L = f2l(f, VF)
 	
 	c = 299792458; %m/s
 	cvf = c.*VF;
-	L = c./f;
+	L = cvf./f;
 	
 end

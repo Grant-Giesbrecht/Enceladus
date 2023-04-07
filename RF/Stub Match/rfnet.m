@@ -265,9 +265,9 @@ classdef rfnet < handle
 			
 			count = 0;
 			if show_micro
-				mt.row([num2str(count), "PORT (SRC)", num2str(obj.desc.ZS_design), "N/A", "N/A", "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS_design), "N/A", "N/A", "N/A", "N/A"]);
 			else
-				mt.row([num2str(count), "PORT (SRC)", num2str(obj.desc.ZS_design), "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (SRC)", num2str(obj.ZS_design), "N/A", "N/A"]);
 			end
 			count = count + 1;
 			for m = obj.mats
@@ -283,9 +283,9 @@ classdef rfnet < handle
 			end
 			count = count + 1;
 			if show_micro
-				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.desc.ZL_design), "N/A", "N/A", "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL_design), "N/A", "N/A", "N/A", "N/A"]);
 			else
-				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.desc.ZL_design), "N/A", "N/A"]);
+				mt.row([num2str(count), "PORT (LOAD)", num2str(obj.ZL_design), "N/A", "N/A"]);
 			end
 			
 			

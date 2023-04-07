@@ -139,7 +139,8 @@ function f = uibandwidth(solns, freqs, spr, spc, optBW_param, e_r, d)
 	plot_page(solns, 1);
 
 	% Assign the a name to appear in the window title.
-	f.Name = 'Match Bandwidth UI';
+% 	f.Name = 'Match Bandwidth UI';
+	f.Name = 'Bandwidth Explorer';
 
 	% Move the window to the center of the screen.
 	movegui(f,'center')
