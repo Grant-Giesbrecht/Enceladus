@@ -1,5 +1,5 @@
 % List of relative directories (relative to install.m's location)
-folders = ["DDF", "ddfload_Data", "electronics", "general", "import",  "RF", "Tutorials", "Smith Chart", fullfile("MSTD", "CLI"), fullfile("MSTD", "plotting"), fullfile("MSTD", "search"), fullfile("MSTD", "string_manipulation"), fullfile("MSTD", "system"), fullfile("RF", "Stub Match")];
+folders = ["DDF", "ddfload_Data", "electronics", "general", "import",  "RF", "Tutorials", "Smith Chart", fullfile("MSTD", "CLI"), fullfile("MSTD", "plotting"), fullfile("MSTD", "search"), fullfile("MSTD", "string_manipulation"), fullfile("MSTD", "system")];
 
 % Find out where 'install.m' is saved
 file_path = mfilename('fullpath'); % Get full path to this file
