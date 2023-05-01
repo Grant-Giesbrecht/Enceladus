@@ -14,7 +14,7 @@ function conf_struct = load_gconf(filename)
 	%Open file
 	fid = fopen(filename);
 	if fid == -1
-		obj.logErr(strcat('Failed to open file "', filename, '"'));
+		warning(strcat('Failed to open file "', filename, '"'));
 		return;
 	end
 	
