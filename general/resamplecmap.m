@@ -7,6 +7,12 @@ function nm = resamplecmap(map, N)
 		map = colormap(map);
 	end
 	
+	% Handle case N=1
+	if N == 1
+		nm = map(1, :);
+		return;
+	end
+	
 	%Get size of current map
 	[N0, r] = size(map);
 	
