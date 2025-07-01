@@ -12,3 +12,4 @@ lp = mdf.getLoadPull();
 
 figure(1);
 contoursc(lp.gamma(), lp.p_load());
+% contoursc(lp.gamma(), lp.p_dc());
