@@ -9,33 +9,32 @@ function displ(varargin)
 %
 %	See also DISP.
 
-	disp_str = "";
-	
-	for id = 1:nargin		
-		
-		%Get net argument
-		x = varargin{id};
-		
-		%Convert to a string
-		if isnumeric(x) %Conversion law for numbers
-			x = num2str(x);
-		else
-			x = string(x);
-		end
-		
-		%Append to master string
-		disp_str = strcat(disp_str, x);
-		
-	end
-	
-	% MATLAB doesn't recognize \n, so manually find/replace it.
-	disp_str = strrep(disp_str, "\n", newline);
-	
-	%Display the final string
-	if nargin == 0 %If not arguments, print a blank newline
-		disp(" ") %Display a space to print a new line
-	else %Display the master string
-		disp(disp_str);
-	end
+	disp(fstr(varargin{:}))
+
+	% disp_str = "";
+	% 
+	% for id = 1:nargin		
+	% 
+	% 	%Get net argument
+	% 	x = varargin{id};
+	% 
+	% 	%Convert to a string
+	% 	if isnumeric(x) %Conversion law for numbers
+		% 	x = num2str(x);
+	% 	else
+		% 	x = string(x);
+	% 	end
+	% 
+	% 	%Append to master string
+	% 	disp_str = strcat(disp_str, x);
+	% 
+	% end
+	% 
+	% %Display the final string
+	% if nargin == 0 %If not arguments, print a blank newline
+	% 	disp(" ") %Display a space to print a new line
+	% else %Display the master string
+	% 	disp(disp_str);
+	% end
 
 end
