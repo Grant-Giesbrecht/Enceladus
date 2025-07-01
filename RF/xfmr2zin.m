@@ -3,7 +3,7 @@ function Zin=xfmr2zin(Z0, Z_l, beta_L)
 %
 %	ZIN = XFMR2ZIN(Z0, Z_L, BETA_L) Calculates the input impedance of a
 %	single section transformer of electrical length BETA_L, characteristic
-%	impedance Z0, and terminated in a load of Z_L.
+%	impedance Z0, and terminated in a load of Z_L. BETA_L is in radians.
 %
 %	See also ZIN2XFMR, REFL.
 

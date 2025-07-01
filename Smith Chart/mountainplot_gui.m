@@ -1,8 +1,12 @@
 function mountainplot_gui(lp_data, param, figno, varargin)
-
-	% SIMPLE_GUI2 Select a data set from the pop-up menu, then
-	% click one of the plot-type push buttons. Clicking the button
-	% plots the selected data in the axes.
+% MOUNTAINPLOT_GUI Plots the loadpull data as a surface
+%
+%	MOUNTAINPLOT_GUI( LP_DATA, PARAM) Takes the LoadPull object LP_DATA and
+%	plots a surface based on it's parameter PARAM.
+%
+%	MOUNTAINPLOT_GUI(..., FIGNO) Specify figure number to plot on
+%
+%	MOUNTAINPLOT_GUI(..., Name, Value) Specify name-value pairs
 	
 	expectedSchemes = {'Light', 'Dark'};
 
@@ -30,7 +34,7 @@ function mountainplot_gui(lp_data, param, figno, varargin)
 % 	hcontour = uicontrol('Style','pushbutton',...
 % 				 'String','Contour','Position',[315,135,70,25],...
 % 				 'Callback',@contourbutton_Callback);
-	hFreqText  = uicontrol('Style','text','String','Frequency (Hz)',...
+	hFreqText  = uicontrol('Style','text','String','Frequency (GHz)',...
 			   'Position',[325,220,60,15]);
 	hFreqMenu = uicontrol('Style','popupmenu',...
 			   'String',cellstr(string(unique(lp_data.freq)./1e9)),...
@@ -67,7 +71,7 @@ function mountainplot_gui(lp_data, param, figno, varargin)
 
 	% Generate the data to plot.
 	freq = 10e9;
-	iPwr = 6;
+	iPwr = 1;
 	lp_filt = lp_data.get(lp_data.filter("Freq", freq, "props.iPower", iPwr));
 % 	title("PAE at 10 GHz, iPower = idx 7");
 

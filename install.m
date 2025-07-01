@@ -1,5 +1,5 @@
 % List of relative directories (relative to install.m's location)
-folders = ["general", "electronics", "RF", "import", "Tutorials", "Smith Chart"];
+folders = ["DDF", "ddfload_Data", "electronics", "general", "import",  "RF", "Tutorials", "Smith Chart", fullfile("MSTD", "CLI"), fullfile("MSTD", "plotting"), fullfile("MSTD", "search"), fullfile("MSTD", "string_manipulation"), fullfile("MSTD", "system"), "FileExchange"];
 
 % Find out where 'install.m' is saved
 file_path = mfilename('fullpath'); % Get full path to this file
@@ -15,22 +15,26 @@ local_dir = file_path(1:trim_idx-1);
 % cd to directory with 'install.m'
 cd(local_dir);
 
+startdir = pwd;
+
 % Add each listed subdirectory
 first = true;
 for fldr = folders
-	
+
 	% If not first addition, move back to base directory
 	if ~first
-		cd ..
+		while ~strcmp(pwd, startdir)
+			cd ..
+		end
 	end
 	first = false;
-	
+
 	% Change to folder
 	cd(char(fldr));
 	newpath = pwd;
 	disp(['Adding to path: >>', newpath, '<<']);
 	addpath(newpath);
-	
+
 
 end
 
@@ -38,7 +42,7 @@ end
 if (savepath == 0)
     disp(' ')
     disp('***************************************************************');
-    disp('*              Path was updated successfully                  *'); 
+    disp('*              Path was updated successfully                  *');
     disp('***************************************************************');
     disp(' ');
     disp('Now upon starting MATLAB the files in this repository will be');
@@ -48,7 +52,7 @@ if (savepath == 0)
 else
     disp(' ')
     disp('***************************************************************');
-    disp('*              ERROR: Failed to update path.                  *'); 
+    disp('*              ERROR: Failed to update path.                  *');
     disp('***************************************************************');
 end
 cd ..

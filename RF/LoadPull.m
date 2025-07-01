@@ -41,6 +41,10 @@ classdef LoadPull < handle
 		
 		sort_info
 		
+		%********* Repeat Warning Info ****************************
+		
+		sent_pae_source_value_warning
+		
 	end
 	
 	methods
@@ -66,9 +70,7 @@ classdef LoadPull < handle
 			obj.I2_DC = [];
 
 			obj.props = {};
-			
-			
-			
+
 			obj.comp_Pload = [];
 			obj.comp_PAE = [];
 			obj.comp_gamma = [];
@@ -100,11 +102,112 @@ classdef LoadPull < handle
 			unsorted.name = "base";
 			unsorted.regions = [1, -1];
 			obj.sort_info = [unsorted];
+			
+			sent_pae_source_value_warning = false;
+		end
+		
+		function merge(obj, varargin)
+		% MERGE Merge data from multiple LoadPull objects
+		%
+		% Merges the data from one or more additional LoadPull objects into
+		% the current LoadPull object.
+		%
+		%	MERGE( LP, ...) Accepts 1 or more LoadPull objects as arguments
+		%	and adds their base (non-derived) parameters to this object,
+		%	then resets this object. 
+		%
+		% See also: AWRLPmdf
+		
+			% Loop over all input objects
+			argno = 0;
+			for vci = 1:nargin-1
+				
+				% Convert from cell to argument type
+				v = varargin{vci};
+				
+				% Increment counter
+				argno = argno + 1;
+				
+				% Verify that argument is a LoadPull 
+				if ~isa(v, 'LoadPull')
+					warning("Cannot merge type '" + class(v) + "' with LoadPull.");
+					continue;
+				end
+				
+				if v.numpoints() == 0
+					warning("Skipping argument No.: " + argno + " because it contains no data.");
+					continue;
+				end
+				
+				% Check that props agree
+				if obj.numpoints() ~= 0 && ~isequal(fieldnames(obj.props), fieldnames(v.props))
+					warning("Cannot merge LoadPull (Argument No.: " + argno + ") because props structs do not match fields.");
+					continue;
+				end
+				
+				np = obj.numpoints();
+				
+				% Mark object as not current
+				obj.reset();
+				
+				% Update base parameters
+				obj.freq = [obj.freq, v.freq];
+				obj.Z0 = [obj.Z0, v.Z0];
+				
+				obj.a1 = [obj.a1, v.a1];
+				obj.b1 = [obj.b1, v.b1];
+				obj.a2 = [obj.a2, v.a2];
+				obj.b2 = [obj.b2, v.b2];
+				
+				obj.V1_DC = [obj.V1_DC, v.V1_DC];
+				obj.I1_DC = [obj.I1_DC, v.I1_DC];
+				obj.V2_DC = [obj.V2_DC, v.V2_DC];
+				obj.I2_DC = [obj.I2_DC, v.I2_DC];
+				
+				if np > 0
+					for fc = string(fieldnames(v.props))'
+						f = fc{:};
+						obj.props.(f) = [obj.props.(f), v.props.(f)];
+					end
+				else
+					for fc = string(fieldnames(v.props))'
+						f = fc{:};
+						obj.props.(f) = v.props.(f);
+					end
+				end
+				
+			end
+			
+			
 		end
 		
 		%==================================================================
 		%====             Sort and Filter Functions                    ====
 		%==================================================================
+		
+		function nlp = gfilter(obj, idxs, varargin)
+		% GFILTER Filters points and returns a LoadPull object
+		%
+		% Equivilent to a call of filter() followed by get(). See
+		% documentation for LoadPull.filter() for argument options.
+		%
+		% See also: filter, get
+		
+			i = obj.filter(idxs, varargin{:});
+			nlp = obj.get(i);
+		end
+		
+		function nlp = glistfilter(obj, idxs, varargin)
+		% GLISTFILTER Filters points and returns a LoadPull object
+		%
+		% Equivilent to a call of filter() followed by get(). See
+		% documentation for LoadPull.filter() for argument options.
+		%
+		% See also: listfilter, get, filter
+		
+			i = obj.listfilter(idxs, varargin);
+			nlp = obj.get(i);
+		end
 		
 		function idx_filt = filter(obj, idxs, varargin) %===================================
 		% FILTER Filters points based on a set of rules
@@ -373,7 +476,64 @@ classdef LoadPull < handle
 		function idx_filt = listfilter(obj, idxs, varargin) %==============
 		% LISTFILTER Filters parameters to match a list of changing values
 		%
-		% 
+		% Filters the points in the LoadPull class based on a set of filter
+		% commands. 
+		%
+		%	IDX_FILT = FILTER(..., Name, Value) Filters all points in the
+		%	LoadPull class based on the filter commands formulated by the
+		%	Name Value pairs. Returns the indecies of the matching points.
+		%
+		%	IDX_FILT = FILTER(IDXS, ..., Name, Value) Filters the data 
+		%	points in the LoadPull class specified by IDXS, based on filter
+		%	commands forumulated by the Name Value pairs. Returns the
+		%	indecies of the matching points. 
+		%
+		%	====================== Parameter Naming =====================
+		%	To filter the LoadPull object, the user must specify which
+		%	paramter to filter. A valid parameter name is the name of any
+		%	base parameter (such as Z0, a1, b1, V1_DC, etc.), any derived
+		%	parameter (such as PAE, P_in, gamma, etc), or a field in the
+		%	property struct. To specify fields in the property struct, the
+		%	field name must be preceeded with "props.". The naming is not 
+		%	case sensitive and ignores underscores.
+		%	
+		%	========================= Filter Values =======================
+		%	Filter values describe what value a parameter must have in 
+		%	order to meet the filter condition. Filter values can be:
+		%		
+		%		EXACT MATCH: Specified as a scalar value
+		%		RANGE: Specified as a nx2 vector of [MIN, MAX], inclusive.
+		%		
+		%		GREATER/LESS THAN: Specified as a nx2 vector of [MIN, MAX],
+		%		with the unbounded side specified as NaN.
+		%		
+		%		MAX/MIN: Returns the points with the highest or lowest
+		%		values. Specify a max or min filter values with the strings
+		%		"MAX" or "MIN".
+		%
+		%		Note on Vector Dimensions:
+		%		All vectors must have the same number of rows, as each
+		%		row's values will be filtered independently of the other
+		%		rows, then merged together. The only exception is that 1x2
+		%		vectors are accepted as well. Filter commands specifies as
+		%		1x2 vectors will be applied equally to all 'n' rows.
+		%
+		%	===================== Name, Value Pairs =====================
+		%
+		%	NAME: MinMaxCount
+		%	VALUE: Valid values include any positive integer. Specifies how
+		%	many values to consider valid when filtering the max/min
+		%	points. For example, a filter 'max' with a MinMaxCount of 3
+		%	takes the top three values present and returns all indecies
+		%	pointing to those values. More than three indecies can be
+		%	returned if duplicate values of one of the max values exist.
+		%	DEFUALT: 1
+		%	
+		%	NAME: <Parameter>
+		%	VALUE: Value to filter for parameter. See Filter values and
+		%	parameter naming above for syntax rules.
+		%
+		% See also: filter() 
 		
 			
 			expectedDomain = {'Z', 'G'};
@@ -397,7 +557,7 @@ classdef LoadPull < handle
 			
 			
 			
-			% FIlter syntax:
+			% Filter syntax:
 			% * "max" "min" are valid options, case insensitive
 			% * Otherwise numeric input expected. If single number, will
 			% look for exact match. If two numbers, will look for bound. 
@@ -472,62 +632,6 @@ classdef LoadPull < handle
 				idx_filt = unique(all_idxs);
 			end
 			
-% 			% Scan through filter list and parse commands
-% 			demostruct.name = "";
-% 			demostruct.operation = "";
-% 			demostruct.value = [];
-% 			commands_ns = repmat(demostruct, 1, numel(varargin)/2);
-% 			pop_idx = 1;
-% 			for fi = 1:2:length(varargin)
-% 				com = {};
-% 				com.name = varargin{fi};
-% 				
-% 				v = varargin{fi+1};
-% 				if isnumeric(v)
-% 					if length(v) == 1
-% 						com.operation = "EQUAL";
-% 						com.value = v;
-% 					elseif isnan(v(1)) && ~isnan(v(2))
-% 						com.operation = "LESS";
-% 						com.value = v(2);
-% 					elseif isnan(v(2)) && ~isnan(v(1))
-% 						com.operation = "GREATER";
-% 						com.value = v(1);
-% 					elseif ~isnan(v(1)) && ~isnan(v(2))
-% 						com.operation = "RANGE";
-% 						com.value = v;
-% 					end
-% 				elseif isa(v, 'string') || isa(v, 'char')
-% 					v = upper(v);
-% 					if strcmp(v, "MAX")
-% 						com.operation = "MAX";
-% 						com.value = [];
-% 					elseif strcmp(v, "MIN")
-% 						com.operation = "MIN";
-% 						com.value = [];
-% 					else
-% 						try
-% 							warning("Failed to recognize command: "+com.name+" = " + string(v));
-% 						catch
-% 							warning("Failed to recognize command: "+com.name+" = <Class: "+class(v) + ">");
-% 						end
-% 						continue;
-% 					end
-% 				else
-% 					try
-% 						warning("Failed to recognize command: "+com.name+" = " + string(v));
-% 					catch
-% 						warning("Failed to recognize command: "+com.name+" = <Class: "+class(v) + ">");
-% 					end
-% 					continue;
-% 				end
-% 				
-% 				% Add to command list
-% 				commands_ns(pop_idx) = com;
-% 				pop_idx = pop_idx+1;
-% 				
-% 			end
-			
 		end
 		
 		function organize(obj, varargin) %=================================
@@ -593,7 +697,48 @@ classdef LoadPull < handle
 		
 		end %======================== END ORGANIZE ========================
 
+		function lp_list = getAllDriveLPs(obj)
+			
+			%TODO: Make this general
+			
+			vgs_vals = unique(obj.props.iV_GS);
+			ip_vals = unique(obj.props.iPower);
+			f_vals = unique(obj.freq());
+			
+			templp = LoadPull();
+			lp_list = repmat(templp, 1, numel(vgs_vals)*numel(ip_vals)*numel(f_vals));
+			
+			% Loop through EVERYTHING
+			count = 1;
+			delete_idxs = [];
+			for vgs = vgs_vals
+				for ip = ip_vals
+					for f = f_vals
+						
+						% Filter and add to master list
+						newlp = obj.gfilter("Freq", f, "props.iPower", ip, "props.iV_GS", vgs);
+						lp_list(count) = newlp;
+						if newlp.numpoints() < 1
+							delete_idxs(end+1) = count;
+						end
+						count = count + 1;
+					end
+				end
+			end
+			
+			% Delete empty LPs
+			lp_list(delete_idxs) = [];
+			
+		end
+		
 		function lp = get(obj, idxs, varargin)
+		% GET Returns a LoadPull object with filtered data.
+		%
+		%	LP = GET(IDXS) Returns a LoadPull object with all populated
+		%	data arrays filter to only contain the data points at the
+		%	indecies listed in IDXS.
+		%
+		%	See also: filter
 			
 			lp = LoadPull;
 			
@@ -696,7 +841,6 @@ classdef LoadPull < handle
 				val = NaN;
 				return;
 			end
-			
 			
 		end
 		
@@ -810,11 +954,28 @@ classdef LoadPull < handle
 			sr = sort_regions(1:count-1,:);
 		end
 		
-		function rearrange(obj, I)
+		function rearrange(obj, I, surpressLengthIWarning)
 		% REARRANGE Rearrange all populated parameters in the object
+		%
+		%	 REARRANGE(I) Shuffles all arrays in the object according to I.
+		%	 ie. applies x = x(I) s.t. x is every populated array in the
+		%	 object (ie. derived parameters, base parameters, and fields of
+		%	 props).
+		%
+		% See also: organize()
+		
+			if ~exist('surpressLengthIWarning', 'var')
+				surpressLengthIWarning = false;
+			end
+
+			expected = obj.numpoints();
+		
+			if length(I) ~= expected && ~surpressLengthIWarning
+				warning("Length of input indecies has incorrect length!");
+			end
 			
-			% Determine expected length
-			expected = length(I);
+% 			% Determine expected length
+% 			expected = length(I);
 			
 			if ~isempty(obj.freq)
 				if length(obj.freq) ~= expected
@@ -931,8 +1092,25 @@ classdef LoadPull < handle
 			
 		end
 		
-		function [vals, stdevs] = average(obj, idxs, avg_prop, varargin)
-			
+		function [vals, stdevs, bins] = average(obj, idxs, avg_prop, varargin)
+		% AVERAGE Calculates the average value for an array of indecies
+		%
+		%	[vals, stdevs, bins] = AVERAGE(AVG_PROP, ... Name, Value)
+		%	AVG_PROP is the name of the property to average. It is case
+		%	insensitive and can refer to any derived or base parameter,
+		%	including fields of props. The Name Value pairs are list filter
+		%	commands. For each row in the Values, the matching points will
+		%	be analyzed and their averages and standard deviations will be
+		%	returned in 'vals' and 'stdevs', respectively. bins will
+		%	contain all rows of the input filter command Values that had
+		%	one or more points match.
+		%
+		%	[vals, stdevs, bins] = average(IDXS, ...) Can specify the
+		%	indecies to check over as an optional first parameter. If not
+		%	specified, all indecies will be checked.
+		%
+		%	See also: filter, listfilter
+		
 			% Check for optional argument idxs
 			if ~isnumeric(idxs)
 				varargin = {avg_prop, varargin{:}};
@@ -944,6 +1122,10 @@ classdef LoadPull < handle
 			[pts, ~] = size(varargin{2});
 			vals = zeros(1, pts);
 			stdevs = zeros(1, pts);
+			
+			pop_idxs = [];
+			
+			bins = {varargin{2:2:length(varargin)}};
 			
 			% Get average/stdev for each point
 			for idx = 1:pts
@@ -962,6 +1144,12 @@ classdef LoadPull < handle
 				% Get indecies
 				pt_idxs = obj.filter(idxs, args{:});
 				
+				% Handle no points match condition
+				if isempty(pt_idxs)
+					pop_idxs(end+1) = idx;
+					continue;
+				end
+				
 				% Get data to average
 				data = obj.getArrayFromName(avg_prop);
 				
@@ -969,6 +1157,17 @@ classdef LoadPull < handle
 				vals(idx) = mean(data(pt_idxs));
 				stdevs(idx) = std(data(pt_idxs));
 				
+% 				if isnan(stdevs(idx)) || isnan(vals(idx))
+% 					displ("~");
+% 				end
+				
+			end
+			
+			% Remove missing values
+			vals(pop_idxs) = [];
+			stdevs(pop_idxs) = [];
+			for bidx = 1:length(bins)
+				bins{bidx}(pop_idxs, :) = [];
 			end
 			
 		end
@@ -1003,7 +1202,8 @@ classdef LoadPull < handle
 % 		end
 		
 		function idx_out = filterLinear(obj, filt_idxs, idxs, cmd)
-						
+		
+			
 			% Get array to filter
 			array = obj.getArrayFromName(cmd.name);
 			array = array(filt_idxs);
@@ -1015,11 +1215,14 @@ classdef LoadPull < handle
 				max_array = array;
 				
 				% Create array of all 'false'
-				match_idx = boolean(zeros(1, length(array)));
+				match_idx = num2logical(zeros(1, length(array)));
 				
 				% For each 'max', find next highest point
 				for mv = 1:cmd.mmcount
 					maxval = max(max_array); % Find max
+					if isempty(maxval) % Quit early if find all points
+						break;
+					end
 					match_idx = match_idx | (array == maxval); % Save where max occurs
 					max_array(max_array == maxval) = []; % Remove maxes from list
 				end
@@ -1027,6 +1230,9 @@ classdef LoadPull < handle
 				match_idx = [];
 				for mv = 1:cmd.mmcount
 					minval = min(array);
+					if isempty(minval) % Quit early if find all points
+						break;
+					end
 					match_idx = [match_idx, (array == minval)];
 					if ~isempty(match_idx)
 						array(find(match_idx)) = [];
@@ -1051,8 +1257,12 @@ classdef LoadPull < handle
 		end
 		
 		function len = numpoints(obj)
-		% NUMPOINTS Returns the number of points in a data array of the
-		% class
+		% NUMPOINTS Returns the number of points in the data arrays.
+		%
+		%	LEN = NUMPOINTS() Returns teh number of points in the object's
+		%	data arrays.
+		%
+		%	See also: reset()
 		
 			len = 0;
 			if ~isempty(obj.freq)
@@ -1100,6 +1310,10 @@ classdef LoadPull < handle
 		
 		function v = gamma(obj) %==========================================
 		%GAMMA Return the reflection coefficient
+		%
+		%	V = GAMMA() Returns the reflection coefficient
+		%
+		%	See also: p_load
 			
 			% Make sure data is up to date
 			if ~obj.isCurrent("GAMMA")
@@ -1111,9 +1325,39 @@ classdef LoadPull < handle
 			v = obj.comp_gamma;
 		end %============================ END GAMMA =======================
 		
-		function v = p_load(obj) %=========================================
-		%P_LOAD Calculate power delivered to the load
+		function v = p_out(obj, units)
+		% P_OUT Return output power. Alternative name for function
+		% p_load. See p_load help for argument details.
+		%
+		%	See also: p_load, p_in
 			
+			% Check for optional arguments
+			if ~exist('units', 'var')
+				units = "dBm";
+			end
+			
+			v = obj.p_load(units);
+			
+		end
+		
+		function v = p_load(obj, units) %==================================
+		%P_LOAD Return the RF power delivered to the load
+		%
+		%	V = P_LOAD() Returns the power delivered to the load
+		%
+		%	V = P_LOAD(Units) Returns the power delivered to the load in
+		%	the specified units. Options are 'dBm' and 'W'
+		%
+		%	See also: p_out, p_in
+			
+			%Check for optional arguments
+			if ~exist('units', 'var')
+% 				units = "dBm";
+				units = 'W';
+			else
+				units = string(units);
+			end
+		
 			% Make sure data is up to date
 			if ~obj.isCurrent("P_LOAD")
 				
@@ -1125,12 +1369,23 @@ classdef LoadPull < handle
 				obj.setCurrent("P_LOAD");
 			end
 			
-			% Return value
+			% Get value
 			v = obj.comp_Pload;
+			
+ 			% Perform conversion
+			if contains(units, "dB", 'IgnoreCase', true)
+				v = lin2dB(v.*1e3, 10); % Base 10 log conversion
+			end
+			
 		end %=========================== END P_LOAD =======================
 		
 		function v = p_in(obj) %===========================================
-			
+		% P_IN Return the RF power input to the system
+		%
+		%	V = P_IN() Return the RF power input.
+		%
+		%	See also: p_dc
+		
 			% Make sure data is up-to-date
 			if ~obj.isCurrent("P_IN")
 				
@@ -1145,7 +1400,13 @@ classdef LoadPull < handle
 		end %=========================== END P_IN =========================
 		
 		function v = p_dc(obj) %===========================================
-			
+		% P_DC Return the DC power input to the system.
+		%
+		%	V = P_DC Return the DC power input to the system.
+		%
+		%	See also: z_l
+		
+		
 			if ~obj.isCurrent("P_DC")
 				obj.comp_Pdc = abs(obj.V1_DC .* obj.I1_DC) + abs(obj.V2_DC .* obj.I2_DC);				
 				obj.setCurrent("P_DC");
@@ -1156,7 +1417,12 @@ classdef LoadPull < handle
 		end %=========================== END P_DC =========================
 		
 		function v = z_l(obj) %==========================================
-		% Converts the load pull gammas to impedances
+		% Z_L Returns the load impedances.
+		%
+		%	V = Z_L Calculates the load impedances in ohms.
+		%
+		%	See also: pae
+		
 		
 			if ~obj.isCurrent("Z_L")
 				% NOTE: USes calls to gamma to make sure gamma is current
@@ -1169,10 +1435,26 @@ classdef LoadPull < handle
 		end %========================== END Z_L ===========================
 		
 		function v = pae(obj) %============================================
+		% PAE Returns the power added efficiency
+		%
+		%	V = PAE() Returns the power added efficiency in percent.
+		%	
+		%	See also: gain
 			
 			if ~obj.isCurrent("PAE")
 				obj.comp_PAE = 100.*(abs(obj.p_load()) - abs(obj.p_in()))./obj.p_dc;
+				if any(obj.comp_PAE > 100)  %TODO: Is there a better way to handle such sanity checks?
+					if ~obj.sent_pae_source_value_warning
+						warning("Provided power data is incorrect. PAE calculated to be > 100%. Setting terms to 100%.");
+						obj.sent_pae_source_value_warning = true;
+					end
+					obj.comp_PAE(obj.comp_PAE > 100) = 100;
+				end
+				
 				obj.setCurrent("PAE");
+				
+				%TODO: Make this cleaner
+				obj.comp_PAE(obj.comp_PAE > 100) = 100;
 			end
 			
 			% Return value
@@ -1181,7 +1463,12 @@ classdef LoadPull < handle
 		end %========================== END PAE ===========================
 		
 		function v = gain(obj)
-			
+		% GAIN Returns the gain of the system.
+		%
+ 		%	V = GAIN() Returns the gain of the system.
+		%
+		%	See also: drain_eff
+		
 			if ~obj.isCurrent("GAIN")
 				obj.comp_Gain = lin2dB(obj.p_load()./obj.p_in());
 				obj.setCurrent("GAIN");
@@ -1193,7 +1480,12 @@ classdef LoadPull < handle
 		end
 		
 		function v = drain_eff(obj) %=======================================
-			
+		% DRAIN_EFF Returns the drain efficiency.
+		%
+		%	V = DRAIN_EFF() Returns the drain efficiency.
+		%
+		%	See also: gamma
+		
 			if ~obj.isCurrent("DRAIN_EFF")
 				obj.comp_DrainEff = 100.* abs(obj.p_load() ./ obj.p_dc());
 				obj.setCurrent("DRAIN_EFF");
@@ -1203,20 +1495,42 @@ classdef LoadPull < handle
 			
 		end %========================== END DRAINEFF ======================
 		
+		function N = trimNonphysical(obj) %================================
+			
+			all_pae = 100.*(abs(obj.p_load()) - abs(obj.p_in()))./obj.p_dc;
+			
+			keepIdx = find(all_pae <= 100);
+			
+			N = obj.numpoints() - length(keepIdx);
+			
+			obj.rearrange(keepIdx, true);
+			
+		end %========================== TRIMNONPHYSICAL ===================
+		
 		%==================================================================
 		%====              Functions for tracking currency             ====
 		%==================================================================
 		
 		function tf = isCurrent(obj, name) %===============================
-		%ISCURRENT Check if a variable is current
+		%ISCURRENT Check if a derived parameter is up-to-date
+		%
+		%	ISCURRENT(NAME) Checks if the parameter 'NAME' is up to date.
+		%
+		%	See also: reset
+		
 			tf = any(name == obj.current);
 		end %========================== END ISCURRENT =====================
 		
 		function setCurrent(obj, name, status) %===========================
 		% SETCURRENT Update the status of a variable as current or
-		% not-current
+		% not-current.
 		%
-		% If status=true, sets to up-to-date, if false, to out-of-date.
+		%	SETCURRENT(NAME, STATUS) Specifies the status of the parameter
+		%	'NAME' to current or not current. If 'STATUS' is true, sets the
+		%	variable to current, otherwise sets to out of date. Updates the
+		%	status of dependencies as needed.
+		%
+		%	See also: Reset
 			
 			% Check for optional arguments
 			if ~exist('status', 'var')
@@ -1258,7 +1572,11 @@ classdef LoadPull < handle
 		end %=================== END SETCURRENT ===========================
 		
 		function reset(obj) %==============================================
-			
+		% RESET Marks all derived parameters as out of date.
+		%
+		%	RESET() Set all derived parameters as out of date, so the next
+		%	time they are queried they will be recalculated.
+		
 			obj.current = "";
 			obj.current(1) = [];
 			
