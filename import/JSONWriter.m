@@ -7,8 +7,12 @@ classdef JSONWriter < handle
         function obj = JSONWriter()
             % Constructor: initialize empty storage as struct
             obj.StoredLists = struct();
-        end
+		end
         
+		function obj = clear(obj)
+			obj.StoredLists = struct();
+		end
+		
         function addList(obj, name, newList)
             % Validate name
             if ~ischar(name) && ~isstring(name)
