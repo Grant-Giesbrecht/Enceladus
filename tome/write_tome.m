@@ -22,7 +22,7 @@
 %  Requirements: MATLAB R2011b+ (h5read / h5write / h5create native HDF5)
 % =========================================================================
 
-function dict_to_hdf(data, filename)
+function struct2tome(data, filename)
 
     if exist(filename, 'file')
         delete(filename);
